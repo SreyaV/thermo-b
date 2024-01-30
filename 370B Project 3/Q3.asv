@@ -5,8 +5,8 @@ fprintf('\nClosing everything...\n')
 %% Declare Global Variables
 global T0 P0 xo mu_o g_tm;                      % Formatted according to Chris' LHV/HHV scripts
 g_tm=0;
-T0=293.15;
-P0=101325;
+T0=298.15;
+P0=oneatm;
 
 %% Declare Local Variables and Assign Values
 fprintf('\nDeclaring Local Variables...\n')
@@ -67,7 +67,7 @@ iH2O = speciesIndex(water, 'H2O');
 xwater = zeros(1, N);
 xwater(iH2O) = 1;
 set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xwater);
-%% State 1 -> 2
+%% State 1fa -> 2fa
 %[Pret,Tret,finalState,pathStates] = compTurb(fluid,P1,T1,P2,eta_p,nsteps)
 
 %Air
@@ -76,18 +76,23 @@ outputs_air = compTurb(air, P0, T0, P0*PR, AirComp_eff, 100);
 %Gas
 outputs_gas = compTurb(gas, P0, T0, P0*PR*2, AirComp_eff, 100);
 
-%% State 2 -> State 3
+%% State 2fa -> State 3m
 
 %Gas
 %outputs_gas = nozzle(gas, 0.5);
 
+%% State 3m -> 4m
+
 %Combustor/Mixer
-%finalState, Tpeak, mdot_mix
+
 outputs_mix = burner(gas, air, mdot_air, P0*PR, TIT , BurnerPR);
+%[finalState, Tpeak, mdot_mix]
 
-%% State 3 -> 4
+%% State 4m -> 5m
 
+outputs_mix = compTurb(gas, pressure(gas), temperature(gas), P0, Turbine_eff, 100);
+%[Pret,Tret,finalState,pathStates]
 
-
+%% 
 
 

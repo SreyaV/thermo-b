@@ -24,8 +24,9 @@ CondenserPR = 0.92;
 SteamTurb_eff = 0.75;
 CondensatePump = 0.85;
 FeedPump_eff = 0.85;
+CondPump_eff = 0.85;
 Condensate_P = 6.8e3; %Pa
-TurbineExit_Q = 8.88;
+TurbineExit_Q = 0.88;
 PinchP_TDiff = 20; %K
 mdot_air = 144; %kg/s
 Air=zeros(1, 4);                                % State variables order-> Enthalpy, Entropy, specific exergy, flow exergy
@@ -59,15 +60,15 @@ iN2 = speciesIndex(air, 'N2');
 xair = zeros(1, N);
 xair(iO2) = 0.21;
 xair(iN2) = 0.79;
-set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xair);
+set(air, 'Temperature', T0, 'Pressure', P0, 'X', xair);
 %% Declare Water
 water = Solution('gri30.yaml','gri30');
 N = nSpecies(water);
 iH2O = speciesIndex(water, 'H2O');
 xwater = zeros(1, N);
 xwater(iH2O) = 1;
-set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xwater);
-%% State 1 -> 2
+set(water, 'Temperature', T0, 'Pressure', P0, 'X', xwater);
+%% State 1fa -> 2fa
 %[Pret,Tret,finalState,pathStates] = compTurb(fluid,P1,T1,P2,eta_p,nsteps)
 
 %Air
@@ -76,22 +77,41 @@ outputs_air = compTurb(air, P0, T0, P0*PR, AirComp_eff, 100);
 %Gas
 outputs_gas = compTurb(gas, P0, T0, P0*PR*2, AirComp_eff, 100);
 
-%% State 2 -> State 3
+%% State 2fa -> State 3m
 
 %Gas
 %outputs_gas = nozzle(gas, 0.5);
 
-%% State 3 -> 4
+%% State 3m -> 4m
 
 %Combustor/Mixer
 
 outputs_mix = burner(gas, air, mdot_air, P0*PR, TIT , BurnerPR);
 %[finalState, Tpeak, mdot_mix]
 
-%% State 4 -> 5
+%% State 4m -> 5m
 
 outputs_mix = compTurb(gas, pressure(gas), temperature(gas), P0, Turbine_eff, 100);
 %[Pret,Tret,finalState,pathStates]
 
+%% State 1w -> 2w
 
+outputs_water = pump(water,P0,P2,FeedPump_eff,100) %TBD P2
+%[Pret,Tret,finalState,pathStates] 
 
+%% State 2w -> 5w && 5m -> 8m
+
+%TBD
+
+%% State 5w -> 6w
+
+outputs_water = compTurb(water,pressure(water),temperature(water),Condensate_P,Turbine_eff,100)
+set(water, 'Pressure', Condensate_P, 'Vapor', TurbineExit_Q);
+
+%% State 6w -> 7w
+
+outputs_water = condenser(water, Condensate_P, CondenserPR, TurbineExit_Q);
+
+%% State 7w -> 8w
+
+outputs_water = pump(water,pressure(water),P0,CondPump_eff,100)
