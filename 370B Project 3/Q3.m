@@ -63,12 +63,13 @@ xair(iO2) = 0.21;
 xair(iN2) = 0.79;
 set(air, 'Temperature', T0, 'Pressure', P0, 'X', xair);
 %% Declare Water
-water = Solution('gri30.yaml','gri30');
-N = nSpecies(water);
-iH2O = speciesIndex(water, 'H2O');
-xwater = zeros(1, N);
-xwater(iH2O) = 1;
-set(water, 'Temperature', T0, 'Pressure', P0, 'X', xwater);
+% water = Solution('gri30.yaml','gri30');
+% N = nSpecies(water);
+% iH2O = speciesIndex(water, 'H2O');
+% xwater = zeros(1, N);
+% xwater(iH2O) = 1;
+water = Water;
+set(water, 'Temperature', T0, 'Pressure', P0); %, 'X', xwater);
 %% State 1fa -> 2fa
 %[Pret,Tret,finalState,pathStates] = compTurb(fluid,P1,T1,P2,eta_p,nsteps)
 
@@ -113,7 +114,7 @@ outputs_water = pumpStep(water,P0,P0*Feed_Pump_Pressure_Ratio,FeedPump_eff,100) 
 % end
 
 mdot_w = 24; %kg/s
-hrsg_outputs = HRSG(mix,water,mdot_mix,mdot_w, HSRG_eff,EconomizerPR,BoilerPR,SuperheaterPR);
+hrsg_outputs = HRSG(gas,water,mdot_mix,mdot_w, HSRG_eff,EconomizerPR,BoilerPR,SuperheaterPR);
 
 
 %% State 5w -> 6w

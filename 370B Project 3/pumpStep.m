@@ -1,5 +1,5 @@
 function [Pret,Tret,finalState,pathStates] = pump(fluid,P1,P2,eta_p,nsteps)
-    fluid
+    vaporFraction(fluid)
     try
         set(fluid,'T',T1,'P',P1);
     catch % if the fluid is in its saturated state, set using its vapor fraction
@@ -19,14 +19,14 @@ function [Pret,Tret,finalState,pathStates] = pump(fluid,P1,P2,eta_p,nsteps)
     h   = hw1;
     for iter = 1:1:length(Pret)
         % Find the isentropic state for the new pressure.
-        set(water,'S',s,'P',Pret(iter));
+        set(fluid,'S',s,'P',Pret(iter));
         % Get the isentropic enthalpy difference.
         hs = enthalpy_mass(fluid);
         dhs = hs - h; 
         % The actual difference is larger due to inefficiency.
         h = h + dhs/eta_p;
         % Find the new state.
-        set(water,'H',h,'P',Pret(iter));
+        set(fluid,'H',h,'P',Pret(iter));
         % Get the entropy for the next step in the process.
         s = entropy_mass(fluid);
         Tret(iter) = temperature(fluid);
