@@ -1,0 +1,41 @@
+%% Close Everything
+clc;clear;close all;
+fprintf('\nClosing everything...\n')
+
+%% Declare Global Variables
+global To Po xo mu_o g_tm;                      % Formatted according to Chris' LHV/HHV scripts
+g_tm=0;
+To=293.15;
+Po=101325;
+
+%% Declare Local Variables and Assign Values
+fprintf('\nDeclaring Local Variables...\n')
+TIT=1410;                                       % Turbine Inlet Temperature from Q2
+PR=12.2;                                          % Pressure Ratio from Q2
+BurnerPR= 0.95;                                 % Values from Project 1
+AirComp_eff=0.86;
+FuelComp_eff=0.86;
+Turbine_eff=0.82;
+HSRG_eff = 0.90;
+EconomizerPR = 0.92;
+BoilerPR = 0.92;
+SuperheaterPR = 0.92;
+CondenserPR = 0.92;
+SteamTurb_eff = 0.75;
+CondensatePump = 0.85;
+FeedPump_eff = 0.85;
+Condensate_P = 6.8e3; %Pa
+TurbineExit_Q = 8.88;
+PinchP_TDiff = 20; %K
+Air=zeros(1, 4);                                % State variables order-> Enthalpy, Entropy, specific exergy, flow exergy
+Fuel=zeros(1, 4);                               % Enthalpy, Entropy, Exergy (Not Specific), Flow Exergy (Not Specific)
+Mix=zeros(1, 4);                                % Same as above
+
+%% Declare Cantera Object
+gas=Solution('gri30.yaml');
+N=nSpecies(gas);
+% Gases-> N2, O2, CO2, AR, H20, CH4, C2H6, C3H8
+indx=[speciesIndex(gas,'N2'), speciesIndex(gas,'O2'), speciesIndex(gas,'CO2'), speciesIndex(gas,'AR'), speciesIndex(gas,'H2O'), speciesIndex(gas,'CH4'), speciesIndex(gas,'C2H6'), speciesIndex(gas,'C3H8')];
+%% Declare Fuel (Copied from Chris's Project 1 script)
+xfuel=zeros(1,N);
+xfuel(indx(1:8))=[0.018, 0.010, 0.010, 0, 0, 0.907, 0.036, 0.019];

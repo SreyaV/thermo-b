@@ -1,0 +1,46 @@
+function [Pret,Tret,finalState,pathStates] = condenser(fluid, P_cond, ratio_c, eta_c, nsteps)
+    % Find the peak temperature required to meet an exit quality spec.
+    % The turbine outlet state is known, and the inlet pressure is known.
+
+    P2 = P_cond*ratio_c;
+    P1 = P_cond;
+
+    % Pressure step sizes are tricky because Cantera has trouble finding the right
+    % density as you pass the critical temperature.  Use try/catch/end to get past
+    % the bad points.  Usually full convergence takes ~500 steps, .5 K.
+    dP  = (P2 - P1)/nsteps;
+    dT  = 1;
+    % Start from State 4 and walk upwards.
+   
+    s = sw5;
+    h = hw5;
+    T = Tw5;
+    v = vw5;
+    try
+        for P=P1:dP:P2
+            % Find the isentropic state for the new pressure.
+            set(fluid,'S',s,'P',P);
+            % Get the isentropic enthalpy difference.
+            hs = enthalpy_mass(fluid);
+            dhs = h - hs;
+            % The actual difference is smaller due to inefficiency.
+            h = h - dhs*eta_c;
+            % Find the new state.
+            set(fluid,'H',h,'P',P);
+            % Get the entropy for the next step in the process.
+            s = entropy_mass(fluid);
+            % Get the temperature.  Print this to check for near-critical
+            % problems.
+            T = temperature(water);
+            v = 1/density(water);
+        end
+        
+        % Check the quality to see if you crossed yet.
+        Quality = vaporFraction(water)
+        if(Quality >= Turbine_Exit_Quality)
+            break
+        end
+    catch
+        disp('Jumping critical isotherm...')
+        water = importPhase('liquidvapor.xml','water');
+    end

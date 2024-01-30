@@ -1,0 +1,49 @@
+Pw2 = Feed_Pump_Pressure_Ratio*Pw1;
+dP  = (Pw2 - Pw1)/steps;
+s   = sw1;
+h   = hw1;
+for P = Pw1:dP:Pw2
+    % Find the isentropic state for the new pressure.
+    set(water,'S',s,'P',P);
+    % Get the isentropic enthalpy difference.
+    hs = enthalpy_mass(water);
+    dhs = hs - h; 
+    % The actual difference is larger due to inefficiency.
+    h = h + dhs/Feed_Pump_Polytropic_Efficiency;
+    % Find the new state.
+    set(water,'H',h,'P',P);
+    % Get the entropy for the next step in the process.
+    s = entropy_mass(water);
+end
+Tw2 = temperature(water);
+hw2 = h;
+sw2 = s;
+
+%% 
+
+% The last water point is before the deaerator via a condensate pump.
+% Walk up in pressure adjusting via the polytropic efficiency.
+Pw8 = Pw1/Deaerator_Pressure_Ratio;
+dP  = (Pw8 - Pw7)/steps;
+s   = sw7;
+h   = hw7;
+for P = Pw7:dP:Pw8
+    set(water,'S',s,'P',P);
+    hs = enthalpy_mass(water);
+    dhs = hs - h;
+    h = dhs/Condensate_Pump_Polytropic_Efficiency + h;
+    set(water,'H',h,'P',P);
+    s = entropy_mass(water);
+end
+Tw8 = temperature(water);
+hw8 = h;
+sw8 = s;
+
+%% 
+
+function [Pret,Tret,finalState,pathStates] = pump(fluid,P1,T1,P2,eta_p,nsteps)
+
+
+
+
+end
