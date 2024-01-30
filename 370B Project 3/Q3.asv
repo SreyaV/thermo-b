@@ -3,10 +3,10 @@ clc;clear;close all;
 fprintf('\nClosing everything...\n')
 
 %% Declare Global Variables
-global To Po xo mu_o g_tm;                      % Formatted according to Chris' LHV/HHV scripts
+global T0 P0 xo mu_o g_tm;                      % Formatted according to Chris' LHV/HHV scripts
 g_tm=0;
-To=293.15;
-Po=101325;
+T0=293.15;
+P0=101325;
 
 %% Declare Local Variables and Assign Values
 fprintf('\nDeclaring Local Variables...\n')
@@ -27,15 +27,67 @@ FeedPump_eff = 0.85;
 Condensate_P = 6.8e3; %Pa
 TurbineExit_Q = 8.88;
 PinchP_TDiff = 20; %K
+mdot_air = 144; %kg/s
 Air=zeros(1, 4);                                % State variables order-> Enthalpy, Entropy, specific exergy, flow exergy
 Fuel=zeros(1, 4);                               % Enthalpy, Entropy, Exergy (Not Specific), Flow Exergy (Not Specific)
 Mix=zeros(1, 4);                                % Same as above
 
-%% Declare Cantera Object
-gas=Solution('gri30.yaml');
-N=nSpecies(gas);
-% Gases-> N2, O2, CO2, AR, H20, CH4, C2H6, C3H8
-indx=[speciesIndex(gas,'N2'), speciesIndex(gas,'O2'), speciesIndex(gas,'CO2'), speciesIndex(gas,'AR'), speciesIndex(gas,'H2O'), speciesIndex(gas,'CH4'), speciesIndex(gas,'C2H6'), speciesIndex(gas,'C3H8')];
-%% Declare Fuel (Copied from Chris's Project 1 script)
-xfuel=zeros(1,N);
-xfuel(indx(1:8))=[0.018, 0.010, 0.010, 0, 0, 0.907, 0.036, 0.019];
+%% Declare Fuel
+gas = Solution('gri30.yaml','gri30');
+N = nSpecies(gas);
+iCH4 = speciesIndex(gas, 'CH4');
+iC2H6 = speciesIndex(gas, 'C2H6');
+iC3H8 = speciesIndex(gas, 'C3H8');
+iCO2 = speciesIndex(gas, 'CO2');
+iO2 = speciesIndex(gas, 'O2');
+iN2 = speciesIndex(gas, 'N2');
+M = molecularWeights(gas);
+
+xfuel = zeros(1, N);
+xfuel(iCH4) = 0.907;
+xfuel(iC2H6) = 0.036;
+xfuel(iC3H8) = 0.019;
+xfuel(iCO2) = 0.010;
+xfuel(iN2) = 0.018;
+xfuel(iO2) = 0.010;
+set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xfuel);
+%% Declare Air
+air = Solution('gri30.yaml','gri30');
+N = nSpecies(air);
+iO2 = speciesIndex(air, 'O2');
+iN2 = speciesIndex(air, 'N2');
+xair = zeros(1, N);
+xair(iO2) = 0.21;
+xair(iN2) = 0.79;
+set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xair);
+%% Declare Water
+water = Solution('gri30.yaml','gri30');
+N = nSpecies(water);
+iH2O = speciesIndex(water, 'H2O');
+xwater = zeros(1, N);
+xwater(iH2O) = 1;
+set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xwater);
+%% State 1 -> 2
+%[Pret,Tret,finalState,pathStates] = compTurb(fluid,P1,T1,P2,eta_p,nsteps)
+
+%Air
+outputs_air = compTurb(air, P0, T0, P0*PR, AirComp_eff, 100);
+
+%Gas
+outputs_gas = compTurb(gas, P0, T0, P0*PR*2, AirComp_eff, 100);
+
+%% State 2 -> State 3
+
+%Gas
+%outputs_gas = nozzle(gas, 0.5);
+
+%Combustor/Mixer
+%finalState, Tpeak, mdot_mix
+outputs_mix = burner(gas, air, mdot_air, P0*PR, TIT , BurnerPR);
+
+%% State 3 -> 4
+
+
+
+
+

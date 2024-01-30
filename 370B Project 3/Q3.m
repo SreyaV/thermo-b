@@ -5,8 +5,8 @@ fprintf('\nClosing everything...\n')
 %% Declare Global Variables
 global T0 P0 xo mu_o g_tm;                      % Formatted according to Chris' LHV/HHV scripts
 g_tm=0;
-T0=293.15;
-P0=101325;
+T0=298.15;
+P0=oneatm;
 
 %% Declare Local Variables and Assign Values
 fprintf('\nDeclaring Local Variables...\n')
@@ -27,6 +27,7 @@ FeedPump_eff = 0.85;
 Condensate_P = 6.8e3; %Pa
 TurbineExit_Q = 8.88;
 PinchP_TDiff = 20; %K
+mdot_air = 144; %kg/s
 Air=zeros(1, 4);                                % State variables order-> Enthalpy, Entropy, specific exergy, flow exergy
 Fuel=zeros(1, 4);                               % Enthalpy, Entropy, Exergy (Not Specific), Flow Exergy (Not Specific)
 Mix=zeros(1, 4);                                % Same as above
@@ -72,10 +73,25 @@ set(gas, 'Temperature', T0, 'Pressure', P0, 'X', xwater);
 %Air
 outputs_air = compTurb(air, P0, T0, P0*PR, AirComp_eff, 100);
 
-%Fuel
-outputs_fuel = compTurb(fuel, P0, T0, P0*PR*2, AirComp_eff, 100);
+%Gas
+outputs_gas = compTurb(gas, P0, T0, P0*PR*2, AirComp_eff, 100);
 
-% Nozze set(gas, 'P', P_air_2, 'H', h_gas_2);
+%% State 2 -> State 3
+
+%Gas
+%outputs_gas = nozzle(gas, 0.5);
+
+%% State 3 -> 4
+
+%Combustor/Mixer
+
+outputs_mix = burner(gas, air, mdot_air, P0*PR, TIT , BurnerPR);
+%[finalState, Tpeak, mdot_mix]
+
+%% State 4 -> 5
+
+outputs_mix = compTurb(gas, pressure(gas), temperature(gas), P0, Turbine_eff, 100);
+%[Pret,Tret,finalState,pathStates]
 
 
 
