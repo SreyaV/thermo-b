@@ -1,5 +1,5 @@
 function [Pret,Tret,finalState,pathStates] = pump(fluid,P1,P2,eta_p,nsteps)
-
+    fluid
     try
         set(fluid,'T',T1,'P',P1);
     catch % if the fluid is in its saturated state, set using its vapor fraction

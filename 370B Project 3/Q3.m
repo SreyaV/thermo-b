@@ -87,9 +87,9 @@ outputs_gas = compTurb(gas, P0, T0, P0*PR*2, AirComp_eff, 100);
 
 %Combustor/Mixer
 
-outputs_mix = burner(gas, air, mdot_air, P0*PR, TIT , BurnerPR);
-mdot_mix = outputs_mix(3);
-%[finalState, Tpeak, mdot_mix]
+[finalState, Tpeak, mdot_mix] = burner_step(gas, air, mdot_air, P0*PR, TIT , BurnerPR)
+%mdot_mix = outputs_mix(3);
+mdot_mix
 
 %% State 4m -> 5m
 
@@ -100,7 +100,7 @@ outputs_mix = compTurb(gas, pressure(gas), temperature(gas), P0, Turbine_eff, 10
 
 % ~100 as the feed pump pressure ratio and ~24kg/s
 Feed_Pump_Pressure_Ratio = 100;
-outputs_water = pump(water,P0,P0*Feed_Pump_Pressure_Ratio,FeedPump_eff,100) %TBD P2
+outputs_water = pumpStep(water,P0,P0*Feed_Pump_Pressure_Ratio,FeedPump_eff,100) %TBD P2
 %[Pret,Tret,finalState,pathStates] 
 
 %% State 2w -> 5w && 5m -> 8m
@@ -123,8 +123,8 @@ set(water, 'Pressure', Condensate_P, 'Vapor', TurbineExit_Q);
 
 %% State 6w -> 7w
 
-outputs_water = condenser(water, Condensate_P, CondenserPR, TurbineExit_Q);
+outputs_water = condenserStep(water, Condensate_P, CondenserPR, TurbineExit_Q);
 
 %% State 7w -> 8w
 
-outputs_water = pump(water,pressure(water),P0,CondPump_eff,100)
+outputs_water = pumpStep(water,pressure(water),P0,CondPump_eff,100)
