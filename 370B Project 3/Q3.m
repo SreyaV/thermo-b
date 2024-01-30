@@ -28,6 +28,7 @@ CondPump_eff = 0.85;
 Condensate_P = 6.8e3; %Pa
 TurbineExit_Q = 0.88;
 PinchP_TDiff = 20; %K
+Feed_Pump_Pressure_Ratio = (40e5/Condensate_P)/EconomizerPR
 mdot_air = 144; %kg/s
 Air=zeros(1, 4);                                % State variables order-> Enthalpy, Entropy, specific exergy, flow exergy
 Fuel=zeros(1, 4);                               % Enthalpy, Entropy, Exergy (Not Specific), Flow Exergy (Not Specific)
@@ -87,6 +88,7 @@ outputs_gas = compTurb(gas, P0, T0, P0*PR*2, AirComp_eff, 100);
 %Combustor/Mixer
 
 outputs_mix = burner(gas, air, mdot_air, P0*PR, TIT , BurnerPR);
+mdot_mix = outputs_mix(3);
 %[finalState, Tpeak, mdot_mix]
 
 %% State 4m -> 5m
@@ -96,12 +98,23 @@ outputs_mix = compTurb(gas, pressure(gas), temperature(gas), P0, Turbine_eff, 10
 
 %% State 1w -> 2w
 
-outputs_water = pump(water,P0,P2,FeedPump_eff,100) %TBD P2
+% ~100 as the feed pump pressure ratio and ~24kg/s
+Feed_Pump_Pressure_Ratio = 100;
+outputs_water = pump(water,P0,P0*Feed_Pump_Pressure_Ratio,FeedPump_eff,100) %TBD P2
 %[Pret,Tret,finalState,pathStates] 
 
 %% State 2w -> 5w && 5m -> 8m
 
-%TBD
+% dwater = (mdot_mix/15)/2000;
+% for mdot_w=dwater:dwater:mdot_mix*2
+%     hrsg_outputs = HRSG(mix,water,mdot_mix,mdot_w, HSRG_eff,EconomizerPR,BoilerPR,SuperheaterPR);
+%     %[Tpinch,waterStates,mixStates]
+% 
+% end
+
+mdot_w = 24; %kg/s
+hrsg_outputs = HRSG(mix,water,mdot_mix,mdot_w, HSRG_eff,EconomizerPR,BoilerPR,SuperheaterPR);
+
 
 %% State 5w -> 6w
 
