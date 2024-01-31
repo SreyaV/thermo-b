@@ -114,16 +114,16 @@ for ratio=0.0:dr:steam_air_mass_ratios_max
     mdot_w = ratio*mdot_air;
     set(mix, 'T', temperature(gas), 'P', pressure(gas), 'X', moleFractions(gas));
 
-    % M_air = meanMolecularWeight(air);
-    % M_water = 18.015; %kg/kmol
-    % 
-    % (mdot_air*pressure(air) + mdot_w*pressure() + mdot_w*hw)/(mdot_air + mdot_w);
-    % 
-    % pre_turbine_pressure = pressure(air)*mdot_air/M_air
-    % pre_turbine_temperature = 
-    % pre_turbine_mixture = 
-    % 
-    % outputs_mix = compTurb(mix, pressure(mix), temperature(mix), P0, Turbine_eff, 100);
+    M_air = meanMolecularWeight(air);
+    M_water = 18.015; %kg/kmol
+    
+    (mdot_air*pressure(air) + mdot_w*pressure() + mdot_w*hw)/(mdot_air + mdot_w);
+
+    pre_turbine_pressure = pressure(air)*mdot_air/M_air
+    pre_turbine_temperature = 
+    pre_turbine_mixture = 
+
+    outputs_mix = compTurb(mix, pressure(mix), temperature(mix), P0, Turbine_eff, 100);
 
 
     [finalState, Tpeak, mdot_mix] = triple_burner_step(mix, air, water, mdot_air, mdot_w, P0*PR, TIT , BurnerPR)
