@@ -48,19 +48,20 @@ for iter = 1:1:length(Pret)
     catch
         vF(iter) = nan;
     end
-    h1 = enthalpy_mass(fluid);
-    s1 = entropy_mass(fluid);
+
 end
 
 finalState.T = Tret(end);
 finalState.P = Pret(end);
-finalState.H = enthalpy_mass(fluid);
-finalState.S = entropy_mass(fluid);
+finalState.h = enthalpy_mass(fluid);
+finalState.s = entropy_mass(fluid);
+finalState.x = exergy_mass(fluid);
+finalState.xf = flowExergy_mass(fluid);
 
 pathStates.T = Tret;
 pathStates.P = Pret;
-pathStates.H = hret;
-pathStates.S = sret;
+pathStates.h = hret;
+pathStates.s = sret;
 pathStates.vF = vF;
 
 % find out exergy if required else forget about it
