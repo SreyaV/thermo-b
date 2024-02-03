@@ -71,7 +71,7 @@ Qmax = mdot_w*(hw4_hypothetical - hw1);
 Qactual = eff*Qmax;
 
 % find out the actual state 4 of water and state 1 of the gas mix
-hw4 = hw1 + Qactual/mdot_w;
+hw4 = hw1 + eff*(hw4_hypothetical - hw1);
 set(waterPlaceholder,'H',hw4,'P',Pw4);
 Tw4 = temperature(waterPlaceholder);
 sw4 = entropy_mass(waterPlaceholder);
