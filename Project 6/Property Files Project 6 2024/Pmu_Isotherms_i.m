@@ -49,6 +49,7 @@ dr = (rmax-rmin)/steps;
 Prisotherm  = zeros(length(Tlist),steps+1);
 risotherm   = zeros(length(Tlist),steps+1);
 Vrisotherm = zeros(length(Tlist),steps+1);
+murisotherm = zeros(length(Tlist),steps+1);
 for j=1:1:length(Tlist)
     T = Tlist(j)
     i = 1;
@@ -56,7 +57,9 @@ for j=1:1:length(Tlist)
         r;
         Prisotherm(j,i) = P_irT(ispecies,r,T);
         Ptemp = Prisotherm(j,i);
+        murisotherm(j, i) = mu_irT(ispecies, r, T);
         Vrisotherm(j,i) = 1/r; %rv_iTP(ispecies,T, Ptemp);
+
         risotherm(j,i) = r;
         i = i+1;
     end
@@ -65,20 +68,20 @@ end
 figure(1)
 clf
 % Put the critical point and ends of the triple line on.
-semilogx(rcrit_i(ispecies),Pcrit_i(ispecies)/1e6,'kd')
+plot(rcrit_i(ispecies),Pcrit_i(ispecies)/1e6,'kd')
 hold on
 plot([rftrip_i(ispecies) rgtrip_i(ispecies)],...
     [Ptrip_i(ispecies) Ptrip_i(ispecies)]/1e6,'ko-')
 % Put the isotherms on.
 for j=1:1:length(Tlist)
-    plot(Vrisotherm(j,:),Prisotherm(j,:)/1e6,'b')
+    plot(Prisotherm(j,:)/1e6, murisotherm(j,:)/1e6,'b')
 end
-plot(Vrisotherm(1,:),Prisotherm(1,:)/1e6,'r')
-plot(Vrisotherm(length(Tlist),:),Prisotherm(length(Tlist),:)/1e6,'r')
+plot(Prisotherm(1,:)/1e6,murisotherm(1,:)/1e6,'r')
+plot(Prisotherm(length(Tlist),:)/1e6,murisotherm(length(Tlist),:)/1e6,'r')
 legend('Critical Point','Triple Line')
 hold off
-xlabel('Specific Volume (kg/m^3)')
-ylabel('Pressure (MPa)')
+ylabel('Chemical Potential (MJ/kmol)')
+xlabel('Pressure (MPa)')
 % Add some simple temperature labels.
 for i=2:1:length(Tlist)-1
     text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
@@ -90,6 +93,6 @@ text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
 i = length(Tlist);
 text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
     ['T = ',num2str(Tlist(i)),' K'],'Color','r')
-axis([0.01 10 -Pcrit_i(ispecies)/1e6 2*Pcrit_i(ispecies)/1e6])
+axis([0.01 2 -0.8 0.2])
 % Gussy up the plot a little.
 plotfixer
