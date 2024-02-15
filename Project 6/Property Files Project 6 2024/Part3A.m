@@ -87,5 +87,6 @@ compTcrit
 comprcrit
 %
 %% 
-
+compTcrit = 32.93800;
+comprcrit = 31.36000;
 P_irT(ispecies, comprcrit, compTcrit)
