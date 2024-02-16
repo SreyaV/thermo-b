@@ -1,0 +1,24 @@
+Tcrit = 33.19;               % K
+Pcrit = 1.3152e6;            % Pa
+
+Ttrip  = 13.95;              % K
+Ptrip  = 0.007199e6;         % Pa
+
+steps = 50;
+delta = 200;
+
+dT = (Tcrit-Ttrip)/steps;
+%dP = (Pcrit-Ptrip)/steps;
+
+Tvals =  Ttrip+dT:dT:Tcrit-dT;
+%Pvals = Ptrip:dP:Pcrit;
+Pvals = zeros(1, length(Tvals));
+
+for i=1:length(Tvals)
+    temp = Saturation_iT(ispecies, Tvals(i));
+    Pvals(i) = temp.P;
+end
+%% 
+figure(1);
+plot(Tvals, Pvals)
+xlabel('Temperature (K)')
