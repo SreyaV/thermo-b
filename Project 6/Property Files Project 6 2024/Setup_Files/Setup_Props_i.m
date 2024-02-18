@@ -42,12 +42,12 @@ NFR   = 56;     % Max number of residual FR coefficients
 % Set the index values for each species to be loaded.  This must be done
 % before getting the individual species data so that it goes in the right
 % place.
-N2  = 1 
-O2  = 2 
-Ar  = 3
-CO2 = 4
-H2O = 5
-nH2 = 6
+N2  = 1 ;
+O2  = 2 ;
+Ar  = 3;
+CO2 = 4;
+H2O = 5;
+nH2 = 6;
 
 % Make the data storage.
 Tcrit_i = zeros(1,N); Pcrit_i = zeros(1,N); rcrit_i = zeros(1,N);
