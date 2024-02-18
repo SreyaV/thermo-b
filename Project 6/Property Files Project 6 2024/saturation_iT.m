@@ -5,7 +5,7 @@ Setup_Props_i
 
 rmax = rupper_i(ispecies);
 rmin = rgtrip_i(ispecies)/2;
-steps = 2000;  % CHANGE THIS NEAR TRIPLE POINT
+steps = 5000;  % CHANGE THIS NEAR TRIPLE POINT
 dr = (rmax-rmin)/steps;
 
 % Preallocate storage...
