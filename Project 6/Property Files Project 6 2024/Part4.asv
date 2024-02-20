@@ -126,7 +126,6 @@ for i=1:length(hlist)
         % Isenthalps inside the dome
         catch
             disp('Error')
-            Tlist_h(i,j) = Ttrip;
             r = rl_iTP(ispecies,Ttrip,P);
             slist_h(i,j) = s_irT(ispecies,r,Ttrip);
 
@@ -140,7 +139,6 @@ clf
 
 % Triple Line
 plot(s_trip,T_trip,'b')
-hold on
 
 % Isobars
 for i=1:length(Plist)+count
@@ -153,8 +151,7 @@ for i=1:length(hlist)
 end
 
 % Vapor Dome
-plot(entropy,Tsat,'b')
-hold off
+plot(entropy,Tsat)
 
 xlabel("Specific entropy (kJ/kg-K)")
 ylabel("Temperature (K)")

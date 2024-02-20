@@ -1,11 +1,11 @@
-function Sat = saturation_iT(ispecies,T)
+function [Psat rf rg] = Saturation_iT(ispecies,T)
 % Return the saturation pressure (Pa) and density (kg/m3) for any species i 
 % at any given T (K).
 Setup_Props_i
 
 rmax = rupper_i(ispecies);
 rmin = rgtrip_i(ispecies)/2;
-steps = 5000;  % CHANGE THIS NEAR TRIPLE POINT
+steps = 2000;  % CHANGE THIS NEAR TRIPLE POINT
 dr = (rmax-rmin)/steps;
 
 % Preallocate storage...
@@ -28,6 +28,7 @@ end
 % xlabel("P (MPa)")
 % ylabel("Chem Pot (MJ/kmol)")
 % legend("off")
+% axis([1.255 1.26 -0.625 -0.624])
 
 
 % Cross finder
@@ -105,9 +106,10 @@ a3 = (chem_pot3(index3+1)-chem_pot3(index3))/ (pressure3(index3+1)-pressure3(ind
 b1 = chem_pot1(index1)-a1*pressure1(index1);
 b3 = chem_pot3(index3)-a3*pressure3(index3);
 
-Sat.P = (b1-b3) / (a3-a1);
-Sat.mu = a1 * Sat.P + b1;
+Psat = (b1-b3) / (a3-a1);
+%Sat.mu = a1 * Sat.P + b1;
 
-Sat.r  = risotherm(index1)+risotherm(index3+i2);
+rg = risotherm(index1);
+rf =risotherm(index3+i2);
 
 end
