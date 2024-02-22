@@ -4,20 +4,20 @@ Pcrit = 1.3152e6;            % Pa
 Ttrip  = 13.95;              % K
 Ptrip  = 0.007199e6;         % Pa
 
-steps = 50;
+steps = 1000;
 delta = 200;
 
 dT = (Tcrit-Ttrip)/steps;
 %dP = (Pcrit-Ptrip)/steps;
 
-Tvals =  Ttrip+dT:dT:Tcrit-dT*10;
+Tvals =  Ttrip+dT:dT:Tcrit-0.3;
 %Pvals = Ptrip:dP:Pcrit;
 Pvals = zeros(1, length(Tvals));
 
 for i=1:length(Tvals)
     Tvals(i)
     temp = saturation_iT(ispecies, Tvals(i));
-    Pvals(i) = temp.P;
+    Pvals(i) = temp(1);
 end
 %% 
 Pvals = [Ptrip Pvals Pcrit];
