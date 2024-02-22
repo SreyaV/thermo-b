@@ -110,6 +110,6 @@ Psat = (b1-b3) / (a3-a1);
 %Sat.mu = a1 * Sat.P + b1;
 
 rg = risotherm(index1);
-rf =risotherm(index3+i2);
+rf = risotherm(index3+i2);
 
 end

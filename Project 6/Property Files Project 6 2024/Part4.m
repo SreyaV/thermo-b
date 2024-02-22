@@ -12,6 +12,7 @@ Ptrip = Ptrip_i(ispecies);
 
 %% Vapor Dome
 
+disp('Generating Vapor Dome for P (Pa)...\n')
 dP = 1e5;
 Plist = Ptrip:dP:0.98*Pcrit;
 N = length(Plist);
@@ -38,7 +39,7 @@ i = 1;
 for x = 0:1/steps:1
     
     r = x*rftrip + (1-x)*rgtrip;
-    s_trip(i) = s_irT(ispecies,r,Ttrip)/1e3;
+    s_trip(i) = max(s_irT(ispecies,r,Ttrip)/1e3,s_irT(ispecies,rftrip,Ttrip)/1e3);
     T_trip(i) = Ttrip;
     i = i+1;
 
@@ -51,7 +52,7 @@ clear slist
 fprintf("Generating isobars (P in bars)...\n")
 
 Plist = [500 200 100 50 20 10 5 2 1 .5 .2 .1]; %[bars]
-steps = 20; %For T
+steps = 100; %For T
 count = 0;
 
 for i=1:length(Plist)
@@ -101,9 +102,10 @@ end
 %% Isenthalps
 
 hlist = [ 0.36 0.626 0.9 1.16 1.43 1.7 1.96 2.23 2.5 2.76 3.03 3.3 3.57 3.83 4.1 4.37]; %[MJ/kg]
+Phlist = [500 350 200 150 100 75 50 35 20 15 10 7.5 5 3.5 2 1.5 1 0.75 .5 0.35 .2 0.15 .1]; %[bars]
+steps = length(Phlist);
 
-fprintf("Generating isenthalps...\n")
-steps = 10; 
+fprintf("Generating isenthalps...(MJ/kg) \n")
 
 slist_h = zeros(length(hlist),steps);
 Tlist_h = zeros(length(hlist),steps);
@@ -113,22 +115,63 @@ for i=1:length(hlist)
     h = hlist(i)
     h = h*1e6;
     
-    for j=1:length(Plist)
+    for j=1:steps
       
-        P = Plist(j)*1e5;
+        P = Phlist(j)*1e5
         
-        % Isenthalps around dome
         try  
+
+            %Isenthalps around the dome
             [r T rf rg] = rT_ihP(ispecies,h,P);
-            slist_h(i,j) = s_irT(ispecies,r,T);
+            slist_h(i,j) = s_irT(ispecies,r,T)/1e3;
             Tlist_h(i,j) = T;
 
-        % Isenthalps inside the dome
+            %Isenthalps inside the dome
+            hcrit = 0.8*1e6;
+            if P<Pcrit_i(ispecies) && h<hcrit
+                
+                disp('Check dome')
+                % Find Tsat(P) as well as sf and sg
+                [Tsat_h rfsat rgsat] = Saturation_iP(ispecies,P);
+                sf = s_irT(ispecies,rfsat,Tsat_h)/1e3;
+                sg = s_irT(ispecies,rgsat,Tsat_h)/1e3;
+
+                % Check if it is inside the dome
+                if (sf <= slist_h(i,j)) && (slist_h(i,j)<=sg)
+                    
+                    disp('inside the dome, P(bars)=')
+                    P*1e-5
+                    hf = h_irT(ispecies,rfsat,Tsat_h);
+                    hg = h_irT(ispecies,rgsat,Tsat_h);
+                    quality = (h-hf)/(hg-hf);
+                    slist_h(i,j) = sg*quality+sf*(1-quality);
+                    Tlist_h(i,j) = Tsat_h;
+
+                end
+            end
+
+
+        % Isenthalps Liquid side (hits triple T)
         catch
-            disp('Error')
+            disp('Liquid side : T = Trip')
             Tlist_h(i,j) = Ttrip;
             r = rl_iTP(ispecies,Ttrip,P);
-            slist_h(i,j) = s_irT(ispecies,r,Ttrip);
+            slist_h(i,j) = s_irT(ispecies,r,Ttrip)/1e3;
+
+%             min = abs(h_irT(6,rl_iTP(6,Ttrip,P),Ttrip)-h) ;
+%             Tlist_h(i,j) = Ttrip;
+%             slist_h(i,j) = s_irT(ispecies,rl_iTP(ispecies,Ttrip,P),Ttrip)/1e3;
+% 
+%             for T=Ttrip:0.1:40
+%                 htemp = h_irT(6,rl_iTP(6,T,P),T)*1e-6;
+%                 
+%                 if abs(htemp-h)<min
+%                     Tlist_h(i,j) = T;
+%                     r = rl_iTP(ispecies,T,P);
+%                     slist_h(i,j) = s_irT(ispecies,r,T)/1e3;
+%                 end
+%             end
+
 
         end
     end
@@ -139,7 +182,7 @@ end
 clf
 
 % Triple Line
-plot(s_trip,T_trip,'b')
+plot(s_trip,T_trip,'r')
 hold on
 
 % Isobars
@@ -147,18 +190,40 @@ for i=1:length(Plist)+count
     plot(slist(i,:),Tlist(i,:),'g')
 end
 
-%Isenthalps
-for i=1:length(hlist)
-    plot(slist_h(i,:)/1e3,Tlist_h(i,:),'r')
+% Add pressure labels.
+steps = 100;
+text(slist(1,steps)-10,Tlist(1,steps)+25,"P (bars) = ")
+c=1;
+for i=1:1:length(Plist)
+    text(slist(i,steps),Tlist(i,steps)+25+5*sign(c),...
+        num2str(Plist(i)),color='g')
+    c=-c;
 end
 
+%Isenthalps
+for i=1:length(hlist)
+    plot(slist_h(i,:),Tlist_h(i,:),'b')
+end
+
+% Enthalpy labels
+steps = length(Phlist);
+text(slist_h(1,steps)-15,Tlist_h(1,steps)-12,"h (MJ/kg) = ")
+for i=2:length(hlist)-1
+    text(slist_h(i,steps)+1,Tlist_h(i,steps),...
+        num2str(hlist(i)),color='b')
+end
+text(slist_h(1,steps),Tlist_h(1,steps)-12,...
+        num2str(hlist(1)),color='b')
+
 % Vapor Dome
-plot(entropy,Tsat,'b')
+plot(entropy,Tsat,'r')
+plot(s_trip,T_trip,'r') % Triple line
 hold off
 
 xlabel("Specific entropy (kJ/kg-K)")
 ylabel("Temperature (K)")
 plotfixer
+legend("off")
 
 
 

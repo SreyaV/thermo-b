@@ -45,48 +45,106 @@ rmax = rupper_i(ispecies);
 rmin = rgtrip_i(ispecies)/2;
 steps = 2000;
 dr = (rmax-rmin)/steps;
+
 % Preallocate storage...
 Prisotherm  = zeros(length(Tlist),steps+1);
 risotherm   = zeros(length(Tlist),steps+1);
+Vrisotherm = zeros(length(Tlist),steps+1);
+
 for j=1:1:length(Tlist)
+
     T = Tlist(j)
     i = 1;
+
+    % Spinodals computation
+    left_spin  = spinodalL(ispecies,T);
+    right_spin = spinodalV(ispecies,T);
+
     for r=rmin:dr:rmax+dr
-        r;
-        Prisotherm(j,i) = P_irT(ispecies,r,T);
-        risotherm(j,i) = r;
-        i = i+1;
+
+        % Outside spinodals
+        if r>right_spin || r<left_spin
+            Prisotherm(j,i) = P_irT(ispecies,r,T);
+            risotherm(j,i) = r;
+            Vrisotherm(j,i) = 1/r;
+            i = i+1;
+
+        else
+            Prisotherm(j,i) =NaN;
+            risotherm(j,i) = NaN;
+            Vrisotherm(j,i) = NaN;
+            i = i+1;
+        end
     end
 end
 
+ %% Saturation line
+
+disp('Generating saturation lines for Temperatures (K)...')
+steps = 50;
+dT = (-Ttrip_i(ispecies)+Tcrit_i(ispecies)*0.99)/steps;
+Tlist_sat = Ttrip_i(ispecies):dT:Tcrit_i(ispecies)*0.99;
+N=length(Tlist_sat);
+
+for j=1:length(Tlist_sat)
+    
+    
+    T = Tlist_sat(j)
+    try
+        [Psat rf rg] = Saturation_iT(ispecies,T);
+        P_sat_f(j) = Psat;
+        P_sat_g(N+1-j)  = Psat;
+        V_sat_f(j) = 1/rf;
+        V_sat_g(N+1-j) = 1/rg;
+    catch
+        P_sat_f(j) = nan;
+        P_sat_g(N+1-j)  = nan;
+        V_sat_f(j) = nan;
+        V_sat_g(N+1-j) = nan;
+    end
+end
+
+
+%% Triple Line
+
+Vtrip = 1/rmax :0.01:1/rmin;
+for i=1:length(Vtrip)
+    Ptrip(i)=Ptrip_i(ispecies);
+end
+
+%%
 figure(1)
 clf
+
+semilogx(rcrit_i(ispecies),Pcrit_i(ispecies),'kd')
 hold on
-% Put the critical point and ends of the triple line on.
-plot(rcrit_i(ispecies),Pcrit_i(ispecies)/1e6,'kd')
-plot([rftrip_i(ispecies) rgtrip_i(ispecies)],...
-    [Ptrip_i(ispecies) Ptrip_i(ispecies)]/1e6,'ko-')
-% Put the isotherms on.
+
 for j=1:1:length(Tlist)
-    plot(risotherm(j,:),Prisotherm(j,:)/1e6,'b')
+    plot(Vrisotherm(j,:),Prisotherm(j,:)/1e6,'b')
 end
-plot(risotherm(1,:),Prisotherm(1,:)/1e6,'r')
-plot(risotherm(length(Tlist),:),Prisotherm(length(Tlist),:)/1e6,'r')
-legend('Critical Point','Triple Line')
+
+% Add saturation line
+Pcrit_num = 1.2838e6; %[Pa]
+P_sat = [P_sat_f Pcrit_num P_sat_g];
+V_sat = [V_sat_f 1/rcrit_i(ispecies) V_sat_g];
+plot(V_sat,P_sat/1e6,'r')
+
+% Add triple line
+plot(Vtrip, Ptrip/1e6,'r')
+
 hold off
-xlabel('Density (kg/m^3)')
+xlabel('Specific Volume (kg/m^3)')
 ylabel('Pressure (MPa)')
+
+
 % Add some simple temperature labels.
-for i=2:1:length(Tlist)-1
-    text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
+for i=1:1:length(Tlist)
+    text(5,1.7/length(Tlist)*i,...
         num2str(Tlist(i)))
 end
-i = 1;
-text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
-    num2str(Tlist(i)),'Color','r')
-i = length(Tlist);
-text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
-    ['T = ',num2str(Tlist(i)),' K'],'Color','r')
-axis([0 rftrip_i(ispecies) -Pcrit_i(ispecies)/1e6 2*Pcrit_i(ispecies)/1e6])
+text(4,1.8,'T (K) =')
+
+axis([0.01 10 -0.2 2])
+
 % Gussy up the plot a little.
 plotfixer

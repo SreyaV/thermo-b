@@ -31,68 +31,87 @@ Tlist = [...
     0.9*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
     0.95*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
     1.00*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
-    % 1.05*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
-    % 1.25*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
-    % 1.50*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
-    % 2.0*(Tcrit_i(ispecies)-Ttrip_i(ispecies)) + Ttrip_i(ispecies)...
-    % 0.1*(Tupper_i(ispecies)-Tcrit_i(ispecies)) + Tcrit_i(ispecies) ...
-    % 0.4*(Tupper_i(ispecies)-Tcrit_i(ispecies)) + Tcrit_i(ispecies) ...
-    % Tupper_i(ispecies)...
     ]
 
 % Set limits and step size.
-rmax = 100;
-rmin = 0.1;
+rmax = rupper_i(ispecies);
+rmin = rgtrip_i(ispecies)/2;
 steps = 2000;
 dr = (rmax-rmin)/steps;
+
 % Preallocate storage...
 Prisotherm  = zeros(length(Tlist),steps+1);
 risotherm   = zeros(length(Tlist),steps+1);
-Vrisotherm = zeros(length(Tlist),steps+1);
 murisotherm = zeros(length(Tlist),steps+1);
-for j=1:1:length(Tlist)
+
+for j=1:length(Tlist)
     T = Tlist(j)
     i = 1;
+    
+    % Spinodals computation
+    left_spin  = spinodalL(ispecies,T);
+    right_spin = spinodalV(ispecies,T);
+ 
     for r=rmin:dr:rmax+dr
-        r;
-        Prisotherm(j,i) = P_irT(ispecies,r,T);
-        Ptemp = Prisotherm(j,i);
-        murisotherm(j, i) = mu_irT(ispecies, r, T);
-        Vrisotherm(j,i) = 1/r; %rv_iTP(ispecies,T, Ptemp);
+        
+        % Outside spinodals
+        if r>right_spin || r<left_spin
+            Prisotherm(j,i) = P_irT(ispecies,r,T);
+            murisotherm(j, i) = mu_irT(ispecies, r, T);
+            risotherm(j,i) = r;
+            i = i+1;
+  
+        else
+            Prisotherm(j,i) =NaN;
+            murisotherm(j, i) = NaN;
+            risotherm(j,i) = NaN;
+            i = i+1;
+        end
 
-        risotherm(j,i) = r;
-        i = i+1;
     end
 end
+
+%% Saturation line
+
+disp('Generating saturation lines for Temperatures (K)...')
+steps = 50;
+dT = (-Ttrip_i(ispecies)+Tcrit_i(ispecies))/steps;
+Tlist_sat = Ttrip_i(ispecies):dT:Tcrit_i(ispecies);
+
+for j=1:length(Tlist_sat)
+    
+    T = Tlist_sat(j)
+    [Psat rf rg] = Saturation_iT(ispecies,T);
+    P_sat(j) = Psat;
+    Mu_sat(j) = mu_irT(ispecies,rf,T);
+
+end
+
 %%
 figure(1)
 clf
-% Put the critical point and ends of the triple line on.
-plot(rcrit_i(ispecies),Pcrit_i(ispecies)/1e6,'kd')
-hold on
-plot([rftrip_i(ispecies) rgtrip_i(ispecies)],...
-    [Ptrip_i(ispecies) Ptrip_i(ispecies)]/1e6,'ko-')
+
 % Put the isotherms on.
 for j=1:1:length(Tlist)
     plot(Prisotherm(j,:)/1e6, murisotherm(j,:)/1e6,'b')
+    hold on
 end
-plot(Prisotherm(1,:)/1e6,murisotherm(1,:)/1e6,'r')
-plot(Prisotherm(length(Tlist),:)/1e6,murisotherm(length(Tlist),:)/1e6,'r')
-legend('Critical Point','Triple Line')
+
+% Add saturation line
+plot(P_sat*1e-6,Mu_sat/1e6,'r')
+
 hold off
+
 ylabel('Chemical Potential (MJ/kmol)')
 xlabel('Pressure (MPa)')
+
 % Add some simple temperature labels.
-for i=2:1:length(Tlist)-1
-    text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
+for i=1:1:length(Tlist)
+    text(1.7,-0.7/length(Tlist)*i,...
         num2str(Tlist(i)))
 end
-i = 1;
-text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
-    num2str(Tlist(i)),'Color','r')
-i = length(Tlist);
-text(2*rcrit_i(ispecies),3*(i-5.5)*(Pcrit_i(ispecies)/1e6)/length(Tlist),...
-    ['T = ',num2str(Tlist(i)),' K'],'Color','r')
-axis([0.01 2 -0.8 0.2])
+text(1.7,0.0,'T (K) =')
+
+axis([-0.2 2 -0.8 0.2])
 % Gussy up the plot a little.
 plotfixer
