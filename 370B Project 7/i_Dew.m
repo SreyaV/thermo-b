@@ -1,0 +1,71 @@
+function [P_ideal,rho_g_ideal,rho_f_ideal,x_ideal]=i_Dew(X,T,varargin)
+global toler N2 O2 Ar Ru M_i
+N=length(X);
+delP=10;
+x_ideal=zeros(N,1);
+x_low=zeros(N,1);
+x_high=zeros(N,1);
+P_fL_i=zeros(N,1);
+for i=1:1:N
+    P_fL_i(i)=P_irT(i,Liquid_Spinodal_iT(i,T),T);
+end
+Pmin=max([P_fL_i' 1])+(max([P_fL_i' 1])/1000);
+P_gV_i=P_crT(X,Vapor_Spinodal_cT(X,T),T);
+P=P_crT(X,varargin{2},varargin{1});
+if(P_gV_i>P)
+    Pmax=P;
+else
+    Pmax=P_gV_i;
+end
+P_ideal=(Pmin+Pmax)/2;
+rho_v_air=rv_cTP(X,T,P_ideal);
+rho_l_N2=rl_iTP(N2,T,P_ideal);
+rho_l_O2=rl_iTP(O2,T,P_ideal);
+rho_l_Ar=rl_iTP(Ar,T,P_ideal);  
+for i=1:1:50
+    rho_v_air=rv_cTP(X,T,P_ideal,rho_v_air);
+    rho_l_O2=rl_iTP(O2,T,P_ideal,rho_l_O2);
+    x_ideal(O2)=exp((mui_icrT(O2,X,rho_v_air,T)-mu_irT(O2,rho_l_O2,T))/(Ru*T));
+    rho_l_N2=rl_iTP(N2,T,P_ideal,rho_l_N2);
+    x_ideal(N2)=exp((mui_icrT(N2,X,rho_v_air,T)-mu_irT(N2,rho_l_N2,T))/(Ru*T));
+    rho_l_Ar=rl_iTP(Ar,T,P_ideal,rho_l_Ar);
+    x_ideal(Ar)=exp((mui_icrT(Ar,X,rho_v_air,T)-mu_irT(Ar,rho_l_Ar,T))/(Ru*T));
+    mass_mix=(x_ideal(N2)*M_i(N2))+(x_ideal(O2)*M_i(O2))+(x_ideal(Ar)*M_i(Ar));
+    v_mix=(x_ideal(N2)*M_i(N2)/rho_l_N2)+(x_ideal(O2)*M_i(O2)/rho_l_O2)+(x_ideal(Ar)*M_i(Ar)/rho_l_Ar);
+    rho_l_mix=mass_mix/v_mix;
+    if((abs(sum(x_ideal)-1)<toler))
+        rho_g_ideal=rho_v_air;
+        rho_f_ideal=rho_l_mix;
+        x_ideal=real(x_ideal/sum(x_ideal));
+        return
+    end
+    rho_v_air=rv_cTP(X,T,P_ideal-delP,rho_v_air);
+    rho_l=rl_iTP(N2,T,P_ideal-delP,rho_l_N2);
+    x_low(N2)=exp((mui_icrT(N2,X,rho_v_air,T)-mu_irT(N2,rho_l,T))/(Ru*T));
+    rho_l=rl_iTP(O2,T,P_ideal-delP,rho_l_O2);
+    x_low(O2)=exp((mui_icrT(O2,X,rho_v_air,T)-mu_irT(O2,rho_l,T))/(Ru*T));
+    rho_l=rl_iTP(Ar,T,P_ideal-delP,rho_l_Ar);
+    x_low(Ar)=exp((mui_icrT(Ar,X,rho_v_air,T)-mu_irT(Ar,rho_l,T))/(Ru*T));
+    f_low=sum(x_low)-1;
+    rho_v_air=rv_cTP(X,T,P_ideal+delP,rho_v_air);
+    rho_l=rl_iTP(N2,T,P_ideal+delP,rho_l_N2);
+    x_high(N2)=exp((mui_icrT(N2,X,rho_v_air,T)-mu_irT(N2,rho_l,T))/(Ru*T));
+    rho_l=rl_iTP(O2,T,P_ideal+delP,rho_l_O2);
+    x_high(O2)=exp((mui_icrT(O2,X,rho_v_air,T)-mu_irT(O2,rho_l,T))/(Ru*T));
+    rho_l=rl_iTP(Ar,T,P_ideal+delP,rho_l_Ar);
+    x_high(Ar)=exp((mui_icrT(Ar,X,rho_v_air,T)-mu_irT(Ar,rho_l,T))/(Ru*T));
+    f_high=sum(x_high)-1;
+    dfdP=((f_high)-(f_low))/(2*delP);
+    dP=-(sum(x_ideal)-1)/dfdP;
+    P_ideal=P_ideal + dP;
+    if(P_ideal<Pmin)
+        P_ideal=Pmin;
+    end
+    if(P_ideal>Pmax)
+        P_ideal=Pmax;
+    end
+end
+P_ideal=0;
+rho_g_ideal=0;
+rho_f_ideal=0;
+x_ideal=zeros(1,N);
