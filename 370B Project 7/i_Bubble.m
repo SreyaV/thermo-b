@@ -19,7 +19,7 @@ if(P_crT(X,Liquid_Spinodal_cT(X,T),T)<0)
 else
     Pmin=P_crT(X,Liquid_Spinodal_cT(X,T),T);
 end
-P_ideal_bubble=(Pmin+Pmax)/2;
+P_ideal_bubble=(Pmin+Pmax)/2;                                   % Start in the middle
 rho_l_air=rl_cTP(X,T,P_ideal_bubble);
 rho_v_N2=rv_iTP(N2,T,P_ideal_bubble);
 rho_v_O2=rv_iTP(O2,T,P_ideal_bubble);
@@ -27,19 +27,21 @@ rho_v_Ar=rv_iTP(Ar,T,P_ideal_bubble);
 for i=1:1:1000 
     rho_l_air=rl_cTP(X,T,P_ideal_bubble,rho_l_air);
     rho_v_N2=rv_iTP(N2,T,P_ideal_bubble,rho_v_N2);
-    x_ideal_bubble(N2)=exp((mui_icrT(N2,X,rho_l_air,T)-mu_irT(N2,rho_v_N2,T))/(Ru*T));
+    x_ideal_bubble(N2)=exp((mui_icrT(N2,X,rho_l_air,T)-mu_irT(N2,rho_v_N2,T))/(Ru*T));          % Difference in chem potentials is RTln(x_i)
     rho_v_O2=rv_iTP(O2,T,P_ideal_bubble,rho_v_O2);
     x_ideal_bubble(O2)=exp((mui_icrT(O2,X,rho_l_air,T)-mu_irT(O2,rho_v_O2,T))/(Ru*T));
     rho_v_Ar=rv_iTP(Ar,T,P_ideal_bubble,rho_v_Ar);
     x_ideal_bubble(Ar)=exp((mui_icrT(Ar,X,rho_l_air,T)-mu_irT(Ar,rho_v_Ar,T))/(Ru*T));
     mass_mix=(x_ideal_bubble(N2)*M_i(N2))+(x_ideal_bubble(O2)*M_i(O2))+x_ideal_bubble(Ar)*M_i(Ar);
     vol_mix=(x_ideal_bubble(N2)*M_i(N2)/rho_v_N2)+(x_ideal_bubble(O2)*M_i(O2)/rho_v_O2)+(x_ideal_bubble(Ar)*M_i(Ar)/rho_v_Ar);
-    rho_v_mix=mass_mix/vol_mix;
-    if((abs(sum(x_ideal_bubble)-1)<toler))
+    rho_v_mix=mass_mix/vol_mix;                                     % amagat for density
+
+
+    if((abs(sum(x_ideal_bubble)-1)<toler))                          % Physically viable solution
         rho_g_ideal=rho_v_mix;
         rho_f_ideal=rho_l_air;
         x_ideal_bubble=real(x_ideal_bubble/sum(x_ideal_bubble));
-        return
+        return                                                      % Close the pressure iteration
     end
 
     % 2nd order Newton-Raphson

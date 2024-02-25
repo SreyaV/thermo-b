@@ -11,7 +11,7 @@ end
 p_ideal(N+1)=1;
 Pmin=max(p_ideal)+(max(p_ideal)/1000);
 Pmax=min([P_crT(X,varargin{2},varargin{1}), P_crT(X,Vapor_Spinodal_cT(X,T),T)]);
-P_ideal=(Pmin+Pmax)/2;
+P_ideal=(Pmin+Pmax)/2;                                      % Start test in the middle
 
 
 rho_air_v=rv_cTP(X,T,P_ideal);                              % initialize
@@ -23,21 +23,21 @@ rho_Ar_l=rl_iTP(Ar,T,P_ideal);
 for i=1:1:1000                                              % Taking delta P=5 (can be changed to higher/lower
     rho_air_v=rv_cTP(X,T,P_ideal,rho_air_v);
     rho_O2_l=rl_iTP(O2,T,P_ideal,rho_O2_l);
-    x_ideal(O2)=exp((mui_icrT(O2,X,rho_air_v,T)-mu_irT(O2,rho_O2_l,T))/(Ru*T));
+    x_ideal(O2)=exp((mui_icrT(O2,X,rho_air_v,T)-mu_irT(O2,rho_O2_l,T))/(Ru*T));             % Difference in chem potentials is RTln(x_i)
     rho_N2_l=rl_iTP(N2,T,P_ideal,rho_N2_l);
     x_ideal(N2)=exp((mui_icrT(N2,X,rho_air_v,T)-mu_irT(N2,rho_N2_l,T))/(Ru*T));
     rho_Ar_l=rl_iTP(Ar,T,P_ideal,rho_Ar_l);
     x_ideal(Ar)=exp((mui_icrT(Ar,X,rho_air_v,T)-mu_irT(Ar,rho_Ar_l,T))/(Ru*T));
     mass_mix=(x_ideal(N2)*M_i(N2))+(x_ideal(O2)*M_i(O2))+(x_ideal(Ar)*M_i(Ar));
     v_mix=(x_ideal(N2)*M_i(N2)/rho_N2_l)+(x_ideal(O2)*M_i(O2)/rho_O2_l)+(x_ideal(Ar)*M_i(Ar)/rho_Ar_l);
-    rho_l_mix=mass_mix/v_mix;
+    rho_l_mix=mass_mix/v_mix;                            % amagat for density
 
 
-    if((abs(sum(x_ideal)-1)<toler))
+    if((abs(sum(x_ideal)-1)<toler))                     % Physically viable solution
         x_ideal=real(x_ideal/sum(x_ideal));
         rho_f_ideal=rho_l_mix;
         rho_g_ideal=rho_air_v;
-        return
+        return                                          % Close the pressure iteration
     end
 
     % 2nd order Newton-Raphson

@@ -25,7 +25,7 @@ for T=60:1:t
     end
     dew_data(T-59, :)=[T,P_ideal,rho_g_ideal,rho_f_ideal];
     x_ideal_dew(T-59,:)=x_ideal;
-    [P_real,rho_g_real,rho_f_real,x_real]=Dew_cT(X,T,P_ideal,x_ideal,rho_f_ideal,rho_g_ideal);
+    [P_real,rho_g_real,rho_f_real,x_real]=Dew_cT(X,T,P_ideal,x_ideal,rho_f_ideal,rho_g_ideal);  % Pass initial values
     dew_data_real(T-59, :)=[T,P_real,rho_g_real,rho_f_real];
     x_real_dew(T-59, :)=x_real;
 end
@@ -39,7 +39,7 @@ for T=60:1:t
     end
     bubble_data(T-59, :)=[T, P_ideal_bubble, rho_f_ideal_bubble, rho_g_ideal_bubble];
     x_ibubble(T-59,:)=x_ideal_bubble;
-    [P_real,rho_f_real,rho_g_real,x_real]=Bubble_cT(X,T,P_ideal_bubble,x_ideal_bubble,rho_f_ideal_bubble,rho_g_ideal_bubble);
+    [P_real,rho_f_real,rho_g_real,x_real]=Bubble_cT(X,T,P_ideal_bubble,x_ideal_bubble,rho_f_ideal_bubble,rho_g_ideal_bubble); % Pass initial values
     bubble_data_real(T-59,:)=[T,P_real,rho_f_real,rho_g_real];
     x_ibubble_real(T-59,:)=x_real;
 end
