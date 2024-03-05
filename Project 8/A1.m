@@ -24,13 +24,13 @@ end
 
 %% Upward tray
 
-i = 9;
-for quality_out = 0.8%:0.1:1
+i = 1;
+for quality_out = 0:0.1:1
     i
     x_in = x_data(i,:);
     y_in = y_data(i,:);
-    T_vap = 89.5;
     T_liq = T_data(i,1);
+    T_vap = 89.1978;
     quality = quality_data(i);
     [x_out,y_out,T_liq_out,T_vap_out] = tray_upward(x_in,y_in,T_liq,T_vap,quality);
     x_top(i,:) = x_out;
@@ -62,9 +62,11 @@ hold off
 
 %%
 figure(2)
-plot(quality_data(1:end-3),T_liq_sat)
+plot(quality_data(1:end),T_liq_sat,'blue')
 hold on
-plot(quality_data(1:end-3),T_vap_sat)
+plot(quality_data(1:end),T_vap_sat,'black')
+ylabel('Temperature (K)')
+xlabel('Reboiler Outlet Quality (mass)')
 plotfixer
 
 
