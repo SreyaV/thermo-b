@@ -25,10 +25,10 @@ else
     % Method used : Bisection
 
     m_inf = 0;
-    m_up  = 10;
+    m_up  = 4;
     
     delta = 5e5;
-    while delta > 1e2
+    while delta > 1e3
         
         m = (m_inf + m_up)/2; % Flow rate vapor (upwards)
         N = m/M_c(y_out); % Molar flow rate 
@@ -49,7 +49,7 @@ else
             h_bot_vap =  m_vap              * h_crT(y_in , rv_cTP(y_in,T_vap,P), T_vap);
             h_top_liq =  M_c(x_out) * N_top * h_crT(x_out, rl_cTP(x_out,T_liq_out,P), T_liq_out);
             h_top_vap =  m                  * h_crT(y_out, rv_cTP(y_out,T_vap_out,P), T_vap_out);
-
+  
             delta = h_top_liq + h_bot_vap - h_bot_liq -h_top_vap;
 
             if delta > 0
@@ -63,9 +63,6 @@ else
             m_inf = m;
         
         end
-
-
-
 
 
         delta = abs(delta);

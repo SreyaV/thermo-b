@@ -4,12 +4,11 @@ global N2 O2 Ar N P
 N = 2;
 P = 1e5;
 Setup_Air_Props;
-reboiler_quality = 0.2;
 
 
 %% 2 trays
-N_trays = 2;
-reboiler_quality = 0.2;
+N_trays = 10
+reboiler_quality = 0.6;
 
 % Set Binary air
 z_feed([N2, O2])=[0.71 0.29];
@@ -18,10 +17,10 @@ z = z_feed;
 
 
 % Make a guess for x_out
-x_out = [0.2 0.8];
+x_out = [0.1 0.9];
 
 % Newton-Raphson
-tol = 1e-3;
+tol = 1e-4;
 delta = 5;
 iterations = 0;
 
@@ -57,6 +56,7 @@ while delta>tol
     delta = norm(x_in-x_feed)
 
 end
+%%
 
 
 

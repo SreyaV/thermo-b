@@ -25,8 +25,8 @@ end
 
 %% Upward tray
 
-i = 9;
-for quality_out = 0.8%0:0.1:1
+i = 1;
+for quality_out = 0:0.1:1
     i
     x_in = x_data(i,:);
     y_in = y_data(i,:);
@@ -35,13 +35,13 @@ for quality_out = 0.8%0:0.1:1
     quality = quality_data(i);
     rg_in = rho_g_out(i);
     m_vap = quality;
-    m_liq = 1-quality;
-    [x_out,y_out,T_liq_out,T_vap_out] = tray_upward(x_in,y_in,T_liq,T_vap,m_vap,m_liq);
+    m_liq = 1;
+    [x_out,y_out,T_liq_out,T_vap_out,m_vap_out,m_liq_in] = tray_upward(x_in,y_in,T_liq,T_vap,m_vap,m_liq);
     x_top(i,:) = x_out;
     y_top(i,:) = y_out;
     T_liq_sat(i,:) = T_liq_out;
     T_vap_sat(i,:) = T_vap_out;
-    Quality(i) = 0;
+    Quality(i) = m_vap_out/(m_liq_in+m_vap_out)
     i = i+1;
 
 end
@@ -69,31 +69,58 @@ for quality_out = 0:0.1:1
 
 end
 
-%%
+%% Upwards tray
 
 clf
 figure(1)
 hold on 
 color = ['g' 'b' 'r'];
-for k=1:3
-    if k==3
-        plot(quality_data,10*x_top(:,k),color = color(k))
-        plot(quality_data,10*y_top(:,k),'--',color = color(k) )
-    else
-        plot(quality_data,x_top(:,k),color = color(k))
-        plot(quality_data,y_top(:,k),'--',color = color(k) )
-    end
 
-end
+%Below
+plot(quality_data,x_top(:,1),'o-',color = 'g')
+plot(quality_data,x_top(:,2),'o-',color = 'b')
+plot(quality_data,10*x_top(:,3),'o-',color = 'r')
+
+plot([0 1], [0 0], '-k')
+plot([0 1], [0 0], '--k')
+plot([0 1], [0 0], '+k')
+plot([0 1], [0 0], 'ok')
+
+plot(quality_data,y_top(:,1),'o--',color = 'g' )
+plot(quality_data,y_top(:,2),'o--',color = 'b' )
+plot(quality_data,10*y_top(:,3),'o--',color = 'r' )
+
+%Above
+plot(quality_data,x_data(:,1),'+-',color = 'g')
+plot(quality_data,y_data(:,1),'+--',color = 'g' )
+plot(quality_data,x_data(:,2),'+-',color = 'b')
+plot(quality_data,y_data(:,2),'+--',color = 'b' )
+plot(quality_data,10*x_data(:,3),'+-',color = 'r')
+plot(quality_data,10*y_data(:,3),'+--',color = 'r' )
+
 hold off
+xlabel("Reboiler Outlet Quality (mass)")
+ylabel("Mole Fraction")
+title('Upwards Tray')
+legend('Nitrogen ','Oxygen ','Argon (x10)','Liquid','Vapor','Below','Above');
+plotfixer
 
-%%
+%% Upwards tray Temperatures
+clf
 figure(2)
-plot(quality_data(1:end),T_liq_sat,'blue')
+plot(quality_data(1:end),T_liq_sat,"o-",color='blue')
 hold on
-plot(quality_data(1:end),T_vap_sat,'black')
+plot(quality_data(1:end),T_vap_sat,"o-",color='black')
+plot(quality_data,T_data(:,2),'+--',color='blue')
+legend('Liquid Above', 'Outlet Liquid & Vapor','Vapor Below')
 ylabel('Temperature (K)')
 xlabel('Reboiler Outlet Quality (mass)')
 plotfixer
 
+%% Upwards Tray outlet quality
+clf
+plot(quality_data,Quality,'o-r')
+ylabel('Tray Outlet Quality (mass)')
+xlabel('Reboiler Outlet Quality (mass)')
+plotfixer
 
