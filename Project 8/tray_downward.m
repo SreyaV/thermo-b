@@ -25,12 +25,12 @@ else
     % Method used : Bisection
 
     m_inf = 0;
-    m_up  = 10;
+    m_up  = 4;
     
     delta = 5e5;
     while delta > 1e3
         
-        m = (m_inf + m_up)/2; % Flow rate liquid (downwards)
+        m = (m_inf + m_up)/2 % Flow rate liquid (downwards)
         N = m/M_c(x_out); % Molar flow rate 
 
         % Species continuity (in moles)
@@ -42,18 +42,19 @@ else
             N_bot = sum(n_bot_vap);
             y_out = n_bot_vap/sum(n_bot_vap);
             [T_vap_out rg_out rf_in y] = Fast_Dew_cP(y_out,P);
-            mass_check = M_c(x_out)*N_bot + m_vap - m_liq -m;
+            T_vap_out
+            mass_check = M_c(x_out)*N_bot + m_vap - m_liq -m
 
             % Energy conservation (in mass)
             h_bot_liq =  m                 * h_crT(x_out , rf_out, T_liq_out);
-            h_bot_vap =  N_bot*M_c(y_in)   * h_crT(y_in , rg_in, T_vap_out);
+            h_bot_vap =  N_bot*M_c(y_in)   * h_crT(y_in , rg_out, T_vap_out);
             h_top_liq =  m_liq             * h_crT(x_in, rl_cTP(x_in,T_liq,P), T_liq);
-            h_top_vap =  m_vap             * h_crT(y_out, rg_out, T_vap);
+            h_top_vap =  m_vap             * h_crT(y_out, rg_in, T_vap);
 
       
-            delta = h_top_liq + h_bot_vap - h_bot_liq -h_top_vap;
+            delta = h_top_liq + h_bot_vap - h_bot_liq -h_top_vap
 
-            if delta > 0
+            if delta < 0
                 m_inf = m;
             else
                 m_up = m;      
@@ -69,7 +70,7 @@ else
 
 
 
-        delta = abs(delta)
+        delta = abs(delta);
 
     end
     
