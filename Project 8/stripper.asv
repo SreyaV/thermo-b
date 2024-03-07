@@ -1,5 +1,6 @@
-function [x_in] = stripper(x_out,quality,N_trays)
-% Given a guess on x_out (liquid product), number of trays and quality
+function [x_in,out,reboiler,tray] = stripper(x_out,quality,N_trays)
+% Given a guess on x_out (liquid product), number of trays and quality of
+% the reboiler
 % Use re boiler and go up the trays 
 % Returns the liquid composition at the top
 
@@ -9,7 +10,14 @@ y_in = y_out;
 T_liq = T_in;
 T_vap = T_out;
 m_vap = quality;
-m_liq = 1-quality;
+m_liq = 1;
+x_in;
+out.T = T_out;
+out.x = x_out(1);
+out.y = y_out(1);
+reboiler.T = T_in;
+reboiler.x = x_in(1);
+reboiler.y = y_in(1);
 
 % Trays
 for k=1:N_trays    
@@ -20,4 +28,9 @@ for k=1:N_trays
     T_vap = T_vap_out;
     m_liq = m_liq_in;
     m_vap = m_vap_out;
+
+    tray(k).T = T_liq;
+    tray(k).x = x_in(1);
+    tray(k).y = y_in(1);
+    tray(k).N2 = 
 end

@@ -1,12 +1,16 @@
-function [tray,out,] = stripper_wrap(Reboiler_quality,N_trays)
-
+function [feed,tray,out,x_out] = stripper_wrap(reboiler_quality,N_trays)
+global N2 O2 P N
 
 % Set Binary air
-z_feed([N2, O2])=[0.71 0.29];
+z_feed=[0.71 0.29];
 z = z_feed;
 [q V y_feed x_feed rg rf] = Flash_zTP(z,79.7,P);
 %[T x_feed y_feed rf rg] = Flash_zqP(z,0.5,P);
 
+feed.T = 79.7;
+feed.x = x_feed(1);
+feed.y = y_feed(1);
+out.N2 = q*feedt.y+(1-q)*out.x;
 
 % Make a guess for x_out
 x_out = [0.1 0.9];
@@ -48,6 +52,7 @@ while delta>tol
     delta = norm(x_in-x_feed)
 
 end
+
 
 
 end
