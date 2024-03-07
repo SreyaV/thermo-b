@@ -70,23 +70,22 @@ end
 
 %% Downward tray
 
-i = 1;
-for quality_out = 0.5%0:0.1:1
+i = 11;
+for quality_out = 1%0:0.1:1
     i
     x_in = x_data(i,:);
     y_in = y_data(i,:);
-    T_liq = T_data(i,1);
-    T_vap = 89.1978;
-    quality = 0.5 %quality_data(i);
-    rg_in = rho_g_out(i);
-    m_vap = quality;
-    m_liq = 1;
+    T_vap = T_data(i,1);
+    T_liq = 77.6402;
+    quality = quality_data(i);
+    m_vap = 1;
+    m_liq = 1-quality;
     [x_out,y_out, T_liq_out,T_vap_out, m_vap_in, m_liq_out] = tray_downward(x_in, y_in, T_liq,T_vap,m_liq,m_vap);
     x_bot(i,:) = x_out;
     y_bot(i,:) = y_out;
     T_liq_sat(i,:) = T_liq_out;
     T_vap_sat(i,:) = T_vap_out;
-    Quality(i) = m_vap_out/(m_liq_in+m_vap_out);
+    Quality(i) = m_vap_in/(m_liq_out+m_vap_in);
     i = i+1;
 
 end
@@ -158,7 +157,7 @@ plot(quality_data,10*x_data(:,3),'+-',color = 'r')
 plot(quality_data,10*y_data(:,3),'+--',color = 'r' )
 
 hold off
-xlabel("Reboiler Outlet Quality (mass)")
+xlabel("Condenser Outlet Quality (mass)")
 ylabel("Mole Fraction")
 title('Downwards Tray')
 legend('Nitrogen ','Oxygen ','Argon (x10)','Liquid','Vapor','Below','Above');
@@ -219,13 +218,13 @@ plotfixer
 %% Downwards tray Temperatures
 clf
 figure(2)
-plot(quality_data(1:end),T_liq_sat,"o-",color='blue')
 hold on
-plot(quality_data(1:end),T_vap_sat,"o-",color='black')
-plot(quality_data,T_data(:,2),'+--',color='blue')
-legend('Liquid Above', 'Outlet Liquid & Vapor','Vapor Below')
+plot(quality_data(1:end),T_vap_sat,"+--",color='blue')
+plot(quality_data(1:end),T_liq_sat,"o-",color='black')
+plot(quality_data,T_data(:,2),'o-',color='blue')
+legend('Vapor Below', 'Outlet Liquid & Vapor','Liquid Above')
 ylabel('Temperature (K)')
-xlabel('Reboiler Outlet Quality (mass)')
+xlabel('Condenser Outlet Quality (mass)')
 plotfixer
 
 
