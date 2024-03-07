@@ -71,13 +71,13 @@ end
 %% Downward tray
 
 i = 1;
-for quality_out = 0:0.5:1
+for quality_out = 0.5%0:0.1:1
     i
     x_in = x_data(i,:);
     y_in = y_data(i,:);
     T_liq = T_data(i,1);
     T_vap = 89.1978;
-    quality = quality_data(i);
+    quality = 0.5 %quality_data(i);
     rg_in = rho_g_out(i);
     m_vap = quality;
     m_liq = 1;

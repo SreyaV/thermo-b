@@ -25,12 +25,12 @@ else
     % Method used : Bisection
 
     m_inf = 0;
-    m_up  = 10;
+    m_up  = 5;
     
     delta = 5e5;
     while delta > 1e3
         
-        m = (m_inf + m_up)/2; % Flow rate liquid (downwards)
+        m = 10; % Flow rate liquid (downwards)
         N = m/M_c(x_out); % Molar flow rate 
 
         % Species continuity (in moles)
@@ -45,18 +45,26 @@ else
             mass_check = M_c(x_out)*N_bot + m_vap - m_liq -m;
 
             % Energy conservation (in mass)
-            h_bot_liq =  m                 * h_crT(x_out , rf_out, T_liq_out);
-            h_bot_vap =  N_bot*M_c(y_in)   * h_crT(y_in , rg_in, T_vap_out);
-            h_top_liq =  m_liq             * h_crT(x_in, rl_cTP(x_in,T_liq,P), T_liq);
-            h_top_vap =  m_vap             * h_crT(y_out, rg_out, T_vap);
+            % h_bot_liq =  m                 * h_crT(x_out , rf_out, T_liq_out);
+            % h_bot_vap =  N_bot*M_c(y_in)   * h_crT(y_in , rg_in, T_vap_out);
+            % h_top_liq =  m_liq             * h_crT(x_in, rl_cTP(x_in,T_liq,P), T_liq);
+            % h_top_vap =  m_vap             * h_crT(y_out, rg_out, T_vap);
+            % 
+            % 
+            % delta = h_top_liq + h_bot_vap - h_bot_liq -h_top_vap;
 
-      
-            delta = h_top_liq + h_bot_vap - h_bot_liq -h_top_vap;
+            h_bot_liq =  m_liq              * h_crT(x_in , rl_cTP(x_in,T_liq,P), T_liq);
+            h_bot_vap =  m_vap              * h_crT(y_in , rv_cTP(y_in,T_vap,P), T_vap);
+            h_top_vap =  M_c(y_out) * N_bot * h_crT(y_out, rl_cTP(y_out,T_vap_out,P), T_vap_out);
+            h_top_liq =  m                  * h_crT(x_out, rv_cTP(x_out,T_liq_out,P), T_liq_out);
+  
+            delta = h_top_liq + h_bot_vap - h_bot_liq - h_top_vap
+
 
             if delta > 0
-                m_inf = m;
+                m = m+m_up;
             else
-                m_up = m;      
+                m_up = m-m_up;      
             end
        
         else
@@ -69,7 +77,7 @@ else
 
 
 
-        delta = abs(delta)
+        delta = abs(delta);
 
     end
     
