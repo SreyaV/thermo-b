@@ -34,5 +34,5 @@ for k=1:N_trays
 
     
     tray(k).y = y_in(1);
-    tray(k).N2 = quality*y_in(1)+(1-quality)*tray(k).x;
+    tray(k).N2 = quality*y+(1-quality)*tray(k).x_in(1);
 end

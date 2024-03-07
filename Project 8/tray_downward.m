@@ -1,4 +1,4 @@
-function [x_out,y_out,T_liq_out,T_vap_out] = tray_downward(y_out,x_in,T_liq,T_vap,m_liq,m_vap)
+function [x_out,y_out,T_liq_out,T_vap_out, m_vap_in, m_liq_out] = tray_downward(y_out,x_in,T_liq,T_vap,m_liq,m_vap)
 % Ideal Tray (downwards solving)
 % Input : Liquid composition from above x_in, Vapour composition emerging
 % from the tray y_out and associated Temperatures
@@ -71,6 +71,12 @@ else
         delta = abs(delta);
 
     end
-
+    
+    m_vap_in = M_c(y_out) * N_bot;
+    m_liq_out = m;
+    %above up is in
+    %below down is out
+    %liquid is out
+    %vapor is in
 
 end
