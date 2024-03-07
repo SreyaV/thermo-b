@@ -44,6 +44,7 @@ for k=1:N_trays
 
     
     tray(k).y = y_in(1);
+<<<<<<< HEAD
     tray(k).N2 = quality*y_in(1)+(1-quality)*tray(k).x;
     tray(k).yS = s_crT(y_in,rv_cTP(y_in,T_liq,P),T_liq);
     tray(k).N2s = quality*tray(k).yS+(1-quality)*tray(k).xS;
@@ -54,3 +55,7 @@ end
 feed.liq = m_liq_in/M_c(x_in)/out_rate;
 feed.vap = m_vap_out/M_c(y_in)/out_rate;
 feed.tot = feed.liq+feed.vap;
+=======
+    tray(k).N2 = quality*y+(1-quality)*tray(k).x_in(1);
+end
+>>>>>>> 008d46a776be708b7bbe95ac12d6bb18b6753615
