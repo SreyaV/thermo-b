@@ -14,7 +14,7 @@ if T_liq>T_vap
 else 
     
     % Find Temperature and Composition of liquid phase (below)
-    [T_liq_out rf_out rg_in x_out] = Fast_Dew_cP(y_in,P);
+    [T_liq_out rg_in rf_out x_out] = Fast_Dew_cP(y_in,P);
     
     % Above quantities are known (quality is in mass here)
     n_top_vap = y_in*m_vap   /M_c(y_in); %moles
@@ -41,7 +41,7 @@ else
             % Find temperature of the vapour below
             N_bot = sum(n_bot_vap);
             y_out = n_bot_vap/sum(n_bot_vap);
-            [T_vap_out rf_in rg_out y] = Fast_Dew_cP(y_out,P);
+            [T_vap_out rg_out rf_in y] = Fast_Dew_cP(y_out,P);
             mass_check = M_c(x_out)*N_bot + m_vap - m_liq -m;
 
             % Energy conservation (in mass)
@@ -69,7 +69,7 @@ else
 
 
 
-        delta = abs(delta);
+        delta = abs(delta)
 
     end
     

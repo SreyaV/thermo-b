@@ -71,7 +71,7 @@ end
 %% Downward tray
 
 i = 1;
-for quality_out = 0:0.1:1
+for quality_out = 0:0.5:1
     i
     x_in = x_data(i,:);
     y_in = y_data(i,:);
