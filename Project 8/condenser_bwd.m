@@ -1,4 +1,4 @@
-function [T_in, y_in, x_in, rho_f_in, rho_g_in, T_out, x_out, rho_f_out, rho_g_out, Q_req]=condenser_fwd(y_feed, quality)
+function [T_in, y_in, x_in, rho_f_in, rho_g_in, T_out, x_out, rho_f_out, rho_g_out, Q_req]=condenser_bwd(y_feed, quality)
 % If the givens are instead x_feed and y_feed, quality can be calculated as
 % the vapor fraction and passed to the condenser instead
 % Output- temperature, composition, density (liquid, vapour), complementary outlet phase, feed-specific heat transfer required 
