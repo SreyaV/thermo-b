@@ -17,9 +17,21 @@ N_H2O = 0.03;
 J_cathode = 1000; %A/m^2
 J_anode = 100*J_cathode;
 
+gas_anode   = Solution('gri30.yaml','gri30');
+
+N     = nSpecies(gas);
+iH2   = speciesIndex(gas,'H2');
+iH2O   = speciesIndex(gas,'H2O');
+M     = molecularWeights(gas);
+x_anode = zeros(1,N);
+x_anode(iH2O) = N_H2;
+x_anode(iH2) = N_H2O;
+set(gas_anode,'T',temp,'P',P,'X',x_anode);
 
 %% Anode
 
+A_a = 0;
 
+mu = chemicalPotential(gas);
 
 %% 
