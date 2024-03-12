@@ -32,6 +32,11 @@ set(gas_anode,'T',temp,'P',P,'X',x_anode);
 
 A_a = 0;
 
-mu = chemicalPotential(gas);
+mu = chem_potentials(gas);
+mu_H2O = mu(iH2O);
+mu_H2 = mu(iH2);
+mu_e = 0;
+
+mu_O_YSZ = mu_H2O + mu_e - mu_H2;
 
 %% 
