@@ -135,18 +135,18 @@ hold on
 color = ['g' 'b' 'r'];
 
 %Below
-plot(quality_data,y_bot(:,1),'o-',color = 'g')
-plot(quality_data,y_bot(:,2),'o-',color = 'b')
-plot(quality_data,10*y_bot(:,3),'o-',color = 'r')
+plot(quality_data,y_bot(:,1),'o--',color = 'g')
+plot(quality_data,y_bot(:,2),'o--',color = 'b')
+plot(quality_data,10*y_bot(:,3),'o--',color = 'r')
 
 plot([0 1], [0 0], '-k')
 plot([0 1], [0 0], '--k')
 plot([0 1], [0 0], '+k')
 plot([0 1], [0 0], 'ok')
 
-plot(quality_data,x_bot(:,1),'o--',color = 'g' )
-plot(quality_data,x_bot(:,2),'o--',color = 'b' )
-plot(quality_data,10*x_bot(:,3),'o--',color = 'r' )
+plot(quality_data,x_bot(:,1),'o-',color = 'g' )
+plot(quality_data,x_bot(:,2),'o-',color = 'b' )
+plot(quality_data,10*x_bot(:,3),'o-',color = 'r' )
 
 %Above
 plot(quality_data,x_data(:,1),'+-',color = 'g')
@@ -235,3 +235,9 @@ ylabel('Tray Outlet Quality (mass)')
 xlabel('Reboiler Outlet Quality (mass)')
 plotfixer
 
+%% Downwards Tray outlet quality
+clf
+plot(quality_data,Quality,'o-r')
+ylabel('Tray Outlet Quality (mass)')
+xlabel('Condenser Outlet Quality (mass)')
+plotfixer
