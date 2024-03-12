@@ -1,5 +1,5 @@
 %% Button Cell Setup
-clear, close all,clf
+clear, close all
 
 %Givens
 disp("Setting up..")
@@ -55,17 +55,17 @@ mu_O2ion_YSZ_cathode_eq = mu_O2ion_YSZ_anode_eq;
 
 mu_electron_cathode_eq   = 0.5 * mu_O2ion_YSZ_cathode_eq - 0.25*mu_cathode_eq(iO2);
 
-delta_phi_eq = 0.5/F * ( mu_anode_eq(iH2) + 0.5 * mu_cathode_eq(iH2O) -mu_anode_eq(iH2O))
+delta_phi_eq = 0.5/F * ( mu_anode_eq(iH2) + 0.5 * mu_cathode_eq(iO2) -mu_anode_eq(iH2O))
 
 
 %% Pass 2
 
 disp("Pass 2: Out of Equilibrium ...")
-dj = 1;
+dj = 0.1;
 jmax = 50;
-current_densities = 1:dj:jmax;
+current_densities = 1e-9:dj:jmax;
 
-for i=1:length(current_densities)
+for i=1%:length(current_densities)
     j = current_densities(i)*1000; % Current density A/m²
     v = (1/2/F)*j; % Reaction velocity per area : mol/s/m²
 
@@ -77,8 +77,13 @@ for i=1:length(current_densities)
     % Chemical potential differences (PER AREA) @anode
     c = P/ (R*temp); % Total concentration of species
     delta_mu_e_anode = J_electron*0; % Neglect those ?
-    delta_mu_H2_anode  = -R*temp*log(1-J_H2_anode*t_GDL/(D_H2H2O*c*moleFraction(gas_anode,'H2')));
-    delta_mu_H2O_anode = R*temp*log(1-J_H2O_anode*t_GDL/(D_H2H2O*c*moleFraction(gas_anode,'H2O')));
+    delta_mu_H2_anode  = -R*temp*log(1 - J_H2_anode*t_GDL/(D_H2H2O*c*moleFraction(gas_anode,'H2')));
+    delta_mu_H2O_anode = R*temp*log(1 + J_H2O_anode*t_GDL/(D_H2H2O*c*moleFraction(gas_anode,'H2O')));
+    
+    x_H2_gas_anode = moleFraction(gas_anode,'H2');
+    H2_anode(i) = x_H2_gas_anode*( 1 - (J_H2_anode*t_GDL)/(x_H2_gas_anode*c*D_H2H2O));
+    x_H2O_gas_anode = moleFraction(gas_anode,'H2O');
+    H2O_anode(i) = x_H2O_gas_anode*( 1 + (J_H2O_anode*t_GDL)/(x_H2O_gas_anode*c*D_H2H2O));
 
     % Chemical potential of O2 ions (anode)
     R_eq = j/(2*F);
@@ -95,6 +100,7 @@ for i=1:length(current_densities)
     J_02_cathode = 0.5*v;
     x_O2_gas_cathode = moleFraction(gas_cathode,'O2');
     x_O2_cathode = 1-(1-x_O2_gas_cathode)*exp( (J_02_cathode*t_GDL) / (c*D_O2N2));
+    O2_cathode(i) = x_O2_cathode;
     delta_mu_O2_cathode = -R*temp*log(x_O2_cathode/x_O2_gas_cathode);
     mu_O2_cathode = mu_cathode_eq(iO2) - delta_mu_O2_cathode;
 
@@ -105,12 +111,24 @@ for i=1:length(current_densities)
     % Finally going to cathode side terminal
     delta_mu_e_cathode = J_electron * 0; % Neglect those ?
     mu_electron_cathode_term = mu_electron_cathode + delta_mu_e_cathode;
+    
+    % Elec Potential (V)
+    delta_phi(i) = -1/F * (-mu_electron_anode_eq + mu_electron_cathode_term); %V
 
-    disp("Final Electrochemical potential difference")
-    delta_phi = -1/F * (-mu_electron_anode_eq + mu_electron_cathode_term)
+    % Power density
+    power(i) = delta_phi(i)*j; % (W/m²)
 end
 
 %% Plots
 
-xlabel("Current density (kA")
+plot(current_densities,delta_phi,'-k')
+hold on
+plot(current_densities,power/max(power),'-',color='cyan')
+plot(current_densities,H2_anode,'-r')
+plot(current_densities,H2O_anode,'-b')
+plot(current_densities,O2_cathode,'-g')
+
+legend('Elec. Potential (V)','Power (normalized)', 'Anode Hydrogen', 'Anode Water', 'Cathode Oxygen')
+xlabel("Current density (kA/m²)")
+hold off
 plotfixer
