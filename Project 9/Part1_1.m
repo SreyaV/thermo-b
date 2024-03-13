@@ -61,8 +61,8 @@ delta_phi_eq = 0.5/F * ( mu_anode_eq(iH2) + 0.5 * mu_cathode_eq(iO2) -mu_anode_e
 %% Pass 2
 
 disp("Pass 2: Out of Equilibrium ...")
-dj = 0.1;
-jmax = 50;
+dj = 0.01;
+jmax = 55;
 current_densities = 1e-9:dj:jmax;
 
 for i=1:length(current_densities)
@@ -74,41 +74,52 @@ for i=1:length(current_densities)
     J_H2O_anode = v;
     J_electron  = 2*v;
 
-    % Chemical potential differences (PER AREA) @anode
+    % Anode activation losses
     c = P/ (R*temp); % Total concentration of species
     delta_mu_e_anode = J_electron*0; % Neglect those ?
-    delta_mu_H2_anode  = -R*temp*log(1 - J_H2_anode*t_GDL/(D_H2H2O*c*moleFraction(gas_anode,'H2')));
-    delta_mu_H2O_anode = R*temp*log(1 + J_H2O_anode*t_GDL/(D_H2H2O*c*moleFraction(gas_anode,'H2O')));
     
+    % Anode GDL losses
     x_H2_gas_anode = moleFraction(gas_anode,'H2');
     H2_anode(i) = x_H2_gas_anode*( 1 - (J_H2_anode*t_GDL)/(x_H2_gas_anode*c*D_H2H2O));
     x_H2O_gas_anode = moleFraction(gas_anode,'H2O');
     H2O_anode(i) = x_H2O_gas_anode*( 1 + (J_H2O_anode*t_GDL)/(x_H2O_gas_anode*c*D_H2H2O));
 
-    % Chemical potential of O2 ions (anode)
-    R_eq = j/(2*F);
-    mu_O2ion_anode = mu_O2ion_YSZ_anode_eq + delta_mu_H2_anode + R*temp*log(v/R_eq +...
-        exp((delta_mu_H2O_anode + 2*delta_mu_e_anode)/(R*temp) ));
+    delta_mu_H2_anode  = -R*temp*log(H2_anode(i) / x_H2_gas_anode);
+    delta_mu_H2O_anode = R*temp*log(H2O_anode(i) / x_H2O_gas_anode);
+    mu_H2_anode = mu_anode_eq(iH2) - delta_mu_H2_anode;
+    mu_H2O_anode = mu_anode_eq(iH2O) + delta_mu_H2O_anode;
+    GDL_loss(i) = (delta_mu_H2_anode + delta_mu_H2O_anode)/F;
 
-    % YSZ
+    % Chemical potential of O2 ions (anode)
+    R_anode_eq = J_anode/(2*F);
+    mu_O2ion_anode = mu_O2ion_YSZ_anode_eq + delta_mu_H2_anode + R*temp*log(v/R_anode_eq +...
+        exp((delta_mu_H2O_anode + 2*delta_mu_e_anode)/(R*temp) ));
+    anode_loss(i) = (mu_O2ion_anode - (mu_H2O_anode - mu_H2_anode))/F;
+
+    % YSZ loss
     J_O2ion_YSZ = v;
-    cond_prime_YSZ = cond_YSZ/(F^2);
+    cond_prime_YSZ = cond_YSZ/((2*F)^2);
     delta_mu_O2ion_YSZ = J_O2ion_YSZ*t_e/cond_prime_YSZ;
     mu_O2ion_cathode = mu_O2ion_anode + delta_mu_O2ion_YSZ;
+    ohmic_loss(i) = delta_mu_O2ion_YSZ/F;
 
-    % Cathode side
+    % Cathode GDL losses
     J_02_cathode = 0.5*v;
     x_O2_gas_cathode = moleFraction(gas_cathode,'O2');
     x_O2_cathode = 1-(1-x_O2_gas_cathode)*exp( (J_02_cathode*t_GDL) / (c*D_O2N2));
+
     O2_cathode(i) = x_O2_cathode;
     delta_mu_O2_cathode = -R*temp*log(x_O2_cathode/x_O2_gas_cathode);
     mu_O2_cathode = mu_cathode_eq(iO2) - delta_mu_O2_cathode;
+    GDL_loss(i) = GDL_loss(i) + 0.5*delta_mu_O2_cathode/F;
 
     % Cathode electron potential
+    R_cathode_eq = J_cathode/(2*F);
     mu_electron_cathode = mu_electron_cathode_eq + 0.25*delta_mu_O2_cathode + 0.5*R*temp*...
-        log(v/R_eq + exp( (mu_O2ion_cathode-mu_O2ion_YSZ_cathode_eq) / (R*temp) ));
+        log(v/R_cathode_eq + exp( (mu_O2ion_cathode-mu_O2ion_YSZ_cathode_eq) / (R*temp) ));
+    cathode_loss(i) = 2*(mu_electron_cathode - (0.5*mu_O2ion_cathode-0.25*mu_O2_cathode) )/F;
 
-    % Finally going to cathode side terminal
+    % Cathode Activation losses
     delta_mu_e_cathode = J_electron * 0; % Neglect those ?
     mu_electron_cathode_term = mu_electron_cathode + delta_mu_e_cathode;
     
@@ -117,18 +128,45 @@ for i=1:length(current_densities)
 
     % Power density
     power(i) = delta_phi(i)*j; % (W/m²)
+    
+    % Check that we didn't reach limit
+    if imag(delta_phi(i))>1e-6
+        break;
+    end
 end
 
-%% Plots
+% Re-size current_densities
+current_densities = current_densities(1:length(delta_phi));
 
+%% Plots
+% Take all arrays up to end-1 to remove the 1st complex number
+
+figure(1)
 plot(current_densities,delta_phi,'-k')
 hold on
-plot(current_densities,power/max(power),'-',color='cyan')
-plot(current_densities,H2_anode,'-r')
-plot(current_densities,H2O_anode,'-b')
-plot(current_densities,O2_cathode,'-g')
+plot(current_densities(1:end-1),power(1:end-1)/max(power),'-',color='cyan')
+plot(current_densities(1:end-1),H2_anode(1:end-1),'-r')
+plot(current_densities(1:end-1),H2O_anode(1:end-1),'-b')
+plot(current_densities(1:end-1),O2_cathode(1:end-1),'-g')
+axis([0 60 0 1.2])
+text(2,1.1,"Max Power: "+ string(round(max(power)/1e3,2))+" kW/m²")
 
 legend('Elec. Potential (V)','Power (normalized)', 'Anode Hydrogen', 'Anode Water', 'Cathode Oxygen')
 xlabel("Current density (kA/m²)")
+hold off
+plotfixer
+
+%% Losses
+
+figure(2)
+plot(current_densities(1:end-1),GDL_loss(1:end-1),'-g')
+hold on
+plot(current_densities(1:end-1),ohmic_loss(1:end-1),'-b')
+plot(current_densities(1:end-1),anode_loss(1:end-1),'-r')
+plot(current_densities(1:end-1),cathode_loss(1:end-1),'-k')
+
+legend('GDL loss','Ohmic loss (YSZ)','Anode Loss','Cathode Loss')
+xlabel("Current density (kA/m²)")
+ylabel('Electrochem. Potential (eV/rxn)')
 hold off
 plotfixer
