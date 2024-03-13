@@ -42,7 +42,12 @@ set(gas_cathode,'T',temp,'P',P,'X',x_cathode);
 
 %% Pass 1 : Cell in Equilibrium
 
-mu = chemicalPotential(gas);
+mu = chem_potentials(gas);
+mu_H2O = mu(iH2O);
+mu_H2 = mu(iH2);
+mu_e = 0;
+
+mu_O_YSZ = mu_H2O + mu_e - mu_H2;
 
 
 %% 
