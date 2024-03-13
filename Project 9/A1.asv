@@ -176,7 +176,7 @@ plotfixer
 %% Affinity plot
 
 for i=1:length(current_densities)
-    affinity0(i) = delta_phi_eq*2; % factor 2 because 2 e-
+    affinity0(i) = delta_phi_eq*2; % factor 2 because 
 end
 affinity1 = affinity0 - anode_loss;
 affinity2 = affinity1 - cathode_loss;
