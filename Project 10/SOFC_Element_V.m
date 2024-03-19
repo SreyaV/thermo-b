@@ -14,7 +14,7 @@ delta = 1;
 iterations = 0;
 
 % initial guess
-i0 = 1; %A/m²
+i0 = 1000; %A/m²
 
 while delta>eps
     
@@ -27,7 +27,7 @@ while delta>eps
     diff = (V_k_dk-V_k) /di;
 
     % Update
-    i0 = i0 - V_k/diff;
+    i0 = i0 - (V_k-V)/diff;
     delta = abs(V-V_k);
 
     if i0<0

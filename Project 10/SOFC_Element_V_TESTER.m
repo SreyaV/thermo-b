@@ -132,14 +132,7 @@ muO_eq = muH2Oa_eq + 2*muEa_eq - muH2a_eq;
 % in equilibrium.
 % The electrochemical potential of an electron at the cathode is given by
 % zero affinity for the cathode reaction: O2 + 4e- -> 2O=
-muEc_eq = (2/4)*muOc_eq -(1/4)*muO2c_eq;
-
-muEa_eq   = mu_eq(1);
-muH2a_eq  = mu_eq(2);
-muH2Oa_eq = mu_eq(3);
-muO_eq    = mu_eq(4);
-muO2c_eq  = mu_eq(5);
-muEc_eq   = mu_eq(6);
+muEc_eq = (2/4)*muO_eq -(1/4)*muO2c_eq;
 
 mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 
@@ -147,9 +140,22 @@ mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 darea = dlength * channel_width;
 
 
-% Evaluate one button cell differential element
+%% Evaluate one button cell differential element
 [i mu xac] = SOFC_Element_V(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
 
 diff_current = i*darea;
 
 fprintf('Current Output from differential button cell element: %.3f A\n', diff_current);
+
+
+
+
+
+
+
+
+
+
+
+
+
