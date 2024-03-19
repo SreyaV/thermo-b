@@ -1,5 +1,13 @@
 % Channel setup of Project 10
 
+%%%%% SET THESE YOURSELF
+
+voltage = 1; %Change to whatever is desired
+dlength = 1e-3; %Change to desired differential button cell length
+
+%%%%%
+
+
 % Global Variables
 global e N_A R h F k_B
 e = 1.60218e-19;    % Coul/unit-charge
@@ -9,7 +17,6 @@ h   = 6.62607e-34;  % J-s
 F   = e*N_A;        % Coul/mole-of-unit-charge and (J/mol)/(eV/particle)
 k_B = R/N_A;        % J/particle-K
 
-%% 
 
 % Set geometries and base variables
 channel_width = 10e-3;
@@ -79,7 +86,6 @@ ioc = ioco*exp(-(Ea_ioc/R)*(1/Tcell - 1/T_ioco));
 Anode_Cathode_Ratio = 100;
 ioa = Anode_Cathode_Ratio*ioc;
 
-%% 
 
 % Set arrays to pass to functions
 
@@ -137,75 +143,13 @@ muEc_eq   = mu_eq(6);
 
 mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 
-%Getting molar flow rate from air inlet velocity
-%m_air = 28.97; % Molar mass of air, g/mol
-A = channel_width*channel_height; % Cross-sectional area of the inlet in m^2
-Q = inlet_velocity * A;                            % Volume flow rate in m^3/s
-n = rho_air * Q / m_air;     % Moles per second
 
-%Using molar flow rate to find molar flow rate of each gas species
-molar_flow_rate_O2 = n*x_O2;
-molar_flow_rate_N2 = n*x_N2;
-molar_flow_rate_H2 = n*x_H2;
-molar_flow_rate_H2O = n*x_H2O;
-
-%% 
-
-% Values you can set!
-
-voltage = 1; %Change to whatever is desired
-steps = 1000; %Change to whatever is desired
-dlength = channel_length / steps;
 darea = dlength * channel_width;
 
-%% 
 
-% Evaluate first button cell differential element
+% Evaluate one button cell differential element
 [i mu xac] = SOFC_Element_V(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
 
 diff_current = i*darea;
-accumulated_current = accumulated_current + diff_current;
 
-%% 
-
-%Evaluate next n-1 elements
-
-iterator = 2;
-while iterator <= steps
-
-    %Calculate # of electrons used in chemical reaction
-    electrons = diff_current / e;
-    %Calculate the ratios of anode/cathode gases used/created relative
-    %to the electrons
-    H2_used = electrons / 2;
-    H2O_created = H2_used;
-    O2_used = electrons / 4;
-    %Use Avogradro's number to calculate the moles / second of each gas
-    %that was either used or created in this differential button cell
-    %element
-    moles_H2_used = H2_used / N_A;
-    moles_H2O_created = H2O_created / N_A;
-    moles_O2_used = O2_used / N_A;
-    %Update the molar flow rates using the prior values calculated
-    molar_flow_rate_O2 = molar_flow_rate_O2 - moles_O2_used;
-    molar_flow_rate_N2 = molar_flow_rate_N2;
-    molar_flow_rate_H2 = molar_flow_rate_H2 - moles_H2_used;
-    molar_flow_rate_H2O = molar_flow_rate_H2O + moles_H2O_created;
-    x_H2 = (molar_flow_rate_H2) / (molar_flow_rate_H2 + molar_flow_rate_H2O);
-    x_H2O = molar_flow_rate_H2O / (molar_flow_rate_H2O + molar_flow_rate_H2);
-    x_O2 = molar_flow_rate_O2 / (molar_flow_rate_O2 + molar_flow_rate_N2);
-    x_N2 = molar_flow_rate_N2 / (molar_flow_rate_N2 + molar_flow_rate_O2);
-    %Get the new anode/cathod characterization arrays
-    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2);
-    %Use the depleted gas arrays to calculate the current density
-    %produced by the next differential button cell element
-    [i mu xac] = SOFC_Element_V(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc)
-    %Calculate the current as current density * area
-    diff_current = i*darea;
-    accumulated_current = accumulated_current + diff_current;
-
-end
-
-accumulated_current
-
-
+fprintf('Current Output from differential button cell element: %.3f A\n', diff_current);
