@@ -1,4 +1,4 @@
-% Channel setup of Project 10
+% Tester file for SOFC_Element_V
 
 %%%%% SET THESE YOURSELF
 
