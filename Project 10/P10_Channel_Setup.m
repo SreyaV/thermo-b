@@ -141,7 +141,7 @@ mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 %m_air = 28.97; % Molar mass of air, g/mol
 A = channel_width*channel_height; % Cross-sectional area of the inlet in m^2
 Q = inlet_velocity * A;                            % Volume flow rate in m^3/s
-n = rho_air * Q / m_air;     % Moles per second
+n = air_density * Q / m_air;     % Moles per second
 
 %Using molar flow rate to find molar flow rate of each gas species
 molar_flow_rate_O2 = n*x_O2;
@@ -154,7 +154,7 @@ molar_flow_rate_H2O = n*x_H2O;
 % Values you can set!
 
 voltage = 1; %Change to whatever is desired
-steps = 1000; %Change to whatever is desired
+steps = 100; %Change to whatever is desired
 dlength = channel_length / steps;
 darea = dlength * channel_width;
 
@@ -196,7 +196,7 @@ while iterator <= steps
     x_O2 = molar_flow_rate_O2 / (molar_flow_rate_O2 + molar_flow_rate_N2);
     x_N2 = molar_flow_rate_N2 / (molar_flow_rate_N2 + molar_flow_rate_O2);
     %Get the new anode/cathod characterization arrays
-    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2);
+    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell);
     %Use the depleted gas arrays to calculate the current density
     %produced by the next differential button cell element
     [i mu xac] = SOFC_Element_V(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc)

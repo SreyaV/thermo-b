@@ -1,9 +1,14 @@
-function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2)
+function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell)
 % Takes mole fractions of the anode and cathode gases, returns
 % composition and chemical potential arrays
 
     % Set arrays to pass to functions
-    
+    gas = Solution('GRI30.yaml');
+    H2  = speciesIndex(gas,'H2');
+    H2O = speciesIndex(gas,'H2O');
+    O2  = speciesIndex(gas,'O2');
+    N2  = speciesIndex(gas,'N2');
+    Nsp = nSpecies(gas);
     % Set the composition and pressure at the anode:
     xanode = zeros(Nsp,1);
     xanode(H2O) = x_H2O;
@@ -30,7 +35,7 @@ function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2)
     xH2Oa_eq  = xanode(H2O);
     xO2c_eq   = xcathode(O2);
     
-    x_eq = [xH2a_eq xH2Oa_eq xO2c_eq];
+    x = [xH2a_eq xH2Oa_eq xO2c_eq];
     
     muH2a_eq  = muanode(H2);
     muH2Oa_eq = muanode(H2O);
@@ -45,15 +50,9 @@ function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2)
     % in equilibrium.
     % The electrochemical potential of an electron at the cathode is given by
     % zero affinity for the cathode reaction: O2 + 4e- -> 2O=
-    muEc_eq = (2/4)*muOc_eq -(1/4)*muO2c_eq;
+    muEc_eq = (2/4)*muO_eq -(1/4)*muO2c_eq;
     
-    muEa_eq   = mu_eq(1);
-    muH2a_eq  = mu_eq(2);
-    muH2Oa_eq = mu_eq(3);
-    muO_eq    = mu_eq(4);
-    muO2c_eq  = mu_eq(5);
-    muEc_eq   = mu_eq(6);
     
-    mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
+    mu = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 
 end
