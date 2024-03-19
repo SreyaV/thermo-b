@@ -1,3 +1,5 @@
+%%% NOT DEBUGGED YET DON'T USE
+
 function [accumulated_current] = channel(voltage, steps)
 % Takes channel voltage and # of steps as input. Outputs current
 % created by channel
