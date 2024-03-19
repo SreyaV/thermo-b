@@ -1,4 +1,6 @@
 function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2)
+% Takes mole fractions of the anode and cathode gases, returns
+% composition and chemical potential arrays
 
     % Set arrays to pass to functions
     
