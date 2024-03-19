@@ -102,6 +102,8 @@ set(gas,'Temperature',Tcell,'Pressure',Pcell,'MoleFractions',xcathode);
 % Get the chemical potentials:
 mucathode = chemPotentials(gas);    % J/kmol
 mucathode = mucathode/1000;         % J/mol
+air_density = density(gas);
+m_air = meanMolecularWeight(gas);
 
 % Save the needed mole fractions and chemical potentials in their own 
 % variable names.
@@ -135,6 +137,17 @@ muEc_eq   = mu_eq(6);
 
 mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 
+%Molar velocities
+%m_air = 28.97; % Molar mass of air, g/mol
+A = channel_width*channel_height; % Cross-sectional area of the inlet in m^2
+Q = inlet_velocity * A;                            % Volume flow rate in m^3/s
+n = rho_air * Q / m_air;     % Moles per second, converting M_air to kg/mol
+
+molar_flow_rate_O2 = n*x_O2;
+molar_flow_rate_N2 = n*x_N2;
+molar_flow_rate_H2 = n*x_H2;
+molar_flow_rate_H2O = n*x_H2O;
+
 %% 
 
 % Values you can set!
@@ -145,7 +158,6 @@ dlength = channel_length / steps;
 darea = dlength * channel_width;
 
 %% 
-
 
 % Evaluate first button cell differential element
 [i mu xac] = SOFC_Element_V(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
@@ -159,6 +171,7 @@ accumulated_current = accumulated_current + diff_current;
 
 iterator = 2;
 while iterator <= steps
+
     electrons = diff_current / e;
     H2_used = electrons / 2;
     H2O_created = H2_used;
@@ -166,10 +179,24 @@ while iterator <= steps
     moles_H2_used = H2_used / N_A;
     moles_H2O_created = H2O_created / N_A;
     moles_O2_used = O2_used / N_A;
-    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2)
+    molar_flow_rate_O2 = molar_flow_rate_O2 - moles_O2_used;
+    molar_flow_rate_N2 = molar_flow_rate_N2;
+    molar_flow_rate_H2 = molar_flow_rate_H2 - moles_H2_used;
+    molar_flow_rate_H2O = molar_flow_rate_H2O + moles_H2O_created;
+    x_H2 = (molar_flow_rate_H2) / (molar_flow_rate_H2 + molar_flow_rate_H2O);
+    x_H2O = molar_flow_rate_H2O / (molar_flow_rate_H2O + molar_flow_rate_H2);
+    x_O2 = molar_flow_rate_O2 / (molar_flow_rate_O2 + molar_flow_rate_N2);
+    x_N2 = molar_flow_rate_N2 / (molar_flow_rate_N2 + molar_flow_rate_O2);
+    
+    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2);
+
+    [i mu xac] = SOFC_Element_V(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc)
+
+    diff_current = i*darea;
+    accumulated_current = accumulated_current + diff_current;
 
 end
 
-
+accumulated_current
 
 
