@@ -161,7 +161,7 @@ darea = dlength * channel_width;
 %% 
 
 % Evaluate first button cell differential element
-[i mu xac] = SOFC_Element_V(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
+[i mu xac] = SOFC_Element_VTKL(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc, 1000)
 
 diff_current = i*darea;
 accumulated_current = accumulated_current + diff_current;
