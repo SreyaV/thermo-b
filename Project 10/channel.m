@@ -5,7 +5,7 @@ function [accumulated_current] = channel(voltage, steps)
     % Set geometries and base variables
     channel_width = 10e-3;
     channel_height = 5e-3;
-    channel_length = 0.5;1
+    channel_length = 0.5;
     
     Tcell = 1000 + 273;
     Pcell = 3e5;
