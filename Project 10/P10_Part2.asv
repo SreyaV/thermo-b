@@ -30,10 +30,6 @@ x_N2 = 3.76/4.76;
 accumulated_current = 0;
 diff_current = 0;
 
-%% 
-
-% Create arrays to pass to functions
-
 % Get a Cantera ideal gas object.  
 % Type this for a list of properties:  methods solution -full
 gas = Solution('GRI30.yaml');
@@ -43,10 +39,54 @@ O2  = speciesIndex(gas,'O2');
 N2  = speciesIndex(gas,'N2');
 Nsp = nSpecies(gas);
 
+% Set the path lengths.
+L_YSZ  = 50e-6;                 % m
+L_GDLa = 5e-3;
+L_GDLc = 5e-3;
+L_Nia  = 0;                     % In case you want the metal too.
+L_Nic  = 0;
+% Put these in an array for convenient passing.
+L = [L_Nia L_GDLa L_GDLa L_YSZ L_GDLc L_Nic];
+
+% Species designation in function Binary_Diffusivity_ijTP:
+iN2 = 1; iO2 = 2; iAr = 3; iCO2 = 4; iH2O = 5; iCO = 6; iH2 = 7; iCH4 = 8;
+
+% Set the oxygen ion specific conductivity of the YSZ.
+kappa_YSZ = 15;                 % S/m or (A/m2)/(V/m)
+% Since two charges move with each O= ion, the species conductivity
+% (product of concentration and molar diffusivity) expressed
+% in terms of chemical potential as the driving force is this
+% over (zF)^2.
+kappa_O = kappa_YSZ/(-2*F)^2    % (mol-O/m2/s)/(J/mol-O/m)
+% Set the electron specific conductivity of the nickel.
+kappa_Ni = 2e6;                 % S/m or (A/m2)/(V/m)
+kappa_E = kappa_Ni/(-1*F)^2     % (mol-E/m2/s)/(J/mol-E/m)
+concentration  = Pcell/(R*Tcell);                           % mol/m3
+D_O2_N2  = Binary_Diffusivity_ijTP(iO2,iN2,Tcell,Pcell)     % m2/s
+D_H2_H2O = Binary_Diffusivity_ijTP(iH2,iH2O,Tcell,Pcell)
+
+K(1) = kappa_E;
+K(2) = kappa_O;
+K(3) = concentration;
+K(4) = D_O2_N2;
+K(5) = D_H2_H2O;
+
+% Exchange current density of the cathode.
+ioco   = 1000;                      % C/s/m2
+T_ioco = Tcell;               % K
+Ea_ioc = 100e3;                     % J/mol
+ioc = ioco*exp(-(Ea_ioc/R)*(1/Tcell - 1/T_ioco));
+Anode_Cathode_Ratio = 100;
+ioa = Anode_Cathode_Ratio*ioc;
+
+%% 
+
+% Set arrays to pass to functions
+
 % Set the composition and pressure at the anode:
 xanode = zeros(Nsp,1);
 xanode(H2O) = x_H2O;
-xanode(H2)  = 1-xanode(H2O);
+xanode(H2)  = x_H2;
 % Set the gas object to the anode state:
 set(gas,'Temperature',Tcell,'Pressure',Pcell,'MoleFractions',xanode);
 % Get the chemical potentials:
@@ -55,8 +95,8 @@ muanode = muanode/1000;             % J/mol
 
 % Set the composition and pressure at the cathode:
 xcathode = zeros(Nsp,1);
-xcathode(O2) = 0.21;
-xcathode(N2) = 1-xcathode(O2);
+xcathode(O2) = x_O2;
+xcathode(N2) = x_N2;
 % Set the gas object to the cathode state:
 set(gas,'Temperature',Tcell,'Pressure',Pcell,'MoleFractions',xcathode);
 % Get the chemical potentials:
@@ -68,20 +108,59 @@ mucathode = mucathode/1000;         % J/mol
 xH2a_eq   = xanode(H2);
 xH2Oa_eq  = xanode(H2O);
 xO2c_eq   = xcathode(O2);
-muH2a_eq  = muanode(H2)
-muH2Oa_eq = muanode(H2O)
-muO2c_eq  = mucathode(O2)
+
+x_eq = [xH2a_eq xH2Oa_eq xO2c_eq];
+
+muH2a_eq  = muanode(H2);
+muH2Oa_eq = muanode(H2O);
+muO2c_eq  = mucathode(O2);
+% Use the electrochemical potential of an electron in the anode as a
+% reference value.  Set this to zero.
+muEa_eq = 0;
+% The oxygen ion electrochemical potential is determined by the 
+% affinity being zero for the anode reaction: H2 + O= -> H2O + 2e-
+muO_eq = muH2Oa_eq + 2*muEa_eq - muH2a_eq;
+% The oxygen ion has the same electrochemical potential at the cathode when
+% in equilibrium.
+% The electrochemical potential of an electron at the cathode is given by
+% zero affinity for the cathode reaction: O2 + 4e- -> 2O=
+muEc_eq = (2/4)*muOc_eq -(1/4)*muO2c_eq;
+
+muEa_eq   = mu_eq(1);
+muH2a_eq  = mu_eq(2);
+muH2Oa_eq = mu_eq(3);
+muO_eq    = mu_eq(4);
+muO2c_eq  = mu_eq(5);
+muEc_eq   = mu_eq(6);
+
+mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 
 %% 
 
-% Values to be set
-voltage = 1;
+% Values you can set!
 
+voltage = 1; %Change to whatever is desired
+steps = 1000; %Change to whatever is desired
+dlength = channel_length / steps;
 
 %% 
+
 
 % Evaluate first button cell differential element
-[i mu xac] = SOFC_Element_V(V,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
+[i mu xac] = SOFC_Element_V(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
+
+diff_current = i;
+accumulated_current = accumulated_current + i;
+
+%% 
+
+%Evaluate next n-1 elements
+
+iterator = 2;
+while iterator <= steps
+    
+
+end
 
 
 

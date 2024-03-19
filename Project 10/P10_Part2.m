@@ -30,8 +30,6 @@ x_N2 = 3.76/4.76;
 accumulated_current = 0;
 diff_current = 0;
 
-voltage = 1; %Change to whatever is desired
-
 % Get a Cantera ideal gas object.  
 % Type this for a list of properties:  methods solution -full
 gas = Solution('GRI30.yaml');
@@ -40,6 +38,46 @@ H2O = speciesIndex(gas,'H2O');
 O2  = speciesIndex(gas,'O2');
 N2  = speciesIndex(gas,'N2');
 Nsp = nSpecies(gas);
+
+% Set the path lengths.
+L_YSZ  = 50e-6;                 % m
+L_GDLa = 5e-3;
+L_GDLc = 5e-3;
+L_Nia  = 0;                     % In case you want the metal too.
+L_Nic  = 0;
+% Put these in an array for convenient passing.
+L = [L_Nia L_GDLa L_GDLa L_YSZ L_GDLc L_Nic];
+
+% Species designation in function Binary_Diffusivity_ijTP:
+iN2 = 1; iO2 = 2; iAr = 3; iCO2 = 4; iH2O = 5; iCO = 6; iH2 = 7; iCH4 = 8;
+
+% Set the oxygen ion specific conductivity of the YSZ.
+kappa_YSZ = 15;                 % S/m or (A/m2)/(V/m)
+% Since two charges move with each O= ion, the species conductivity
+% (product of concentration and molar diffusivity) expressed
+% in terms of chemical potential as the driving force is this
+% over (zF)^2.
+kappa_O = kappa_YSZ/(-2*F)^2    % (mol-O/m2/s)/(J/mol-O/m)
+% Set the electron specific conductivity of the nickel.
+kappa_Ni = 2e6;                 % S/m or (A/m2)/(V/m)
+kappa_E = kappa_Ni/(-1*F)^2     % (mol-E/m2/s)/(J/mol-E/m)
+concentration  = Pcell/(R*Tcell);                           % mol/m3
+D_O2_N2  = Binary_Diffusivity_ijTP(iO2,iN2,Tcell,Pcell)     % m2/s
+D_H2_H2O = Binary_Diffusivity_ijTP(iH2,iH2O,Tcell,Pcell)
+
+K(1) = kappa_E;
+K(2) = kappa_O;
+K(3) = concentration;
+K(4) = D_O2_N2;
+K(5) = D_H2_H2O;
+
+% Exchange current density of the cathode.
+ioco   = 1000;                      % C/s/m2
+T_ioco = Tcell;               % K
+Ea_ioc = 100e3;                     % J/mol
+ioc = ioco*exp(-(Ea_ioc/R)*(1/Tcell - 1/T_ioco));
+Anode_Cathode_Ratio = 100;
+ioa = Anode_Cathode_Ratio*ioc;
 
 %% 
 
@@ -99,8 +137,38 @@ mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 
 %% 
 
+% Values you can set!
+
+voltage = 1; %Change to whatever is desired
+steps = 1000; %Change to whatever is desired
+dlength = channel_length / steps;
+darea = dlength * channel_width;
+
+%% 
+
+
 % Evaluate first button cell differential element
 [i mu xac] = SOFC_Element_V(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc)
+
+diff_current = i*darea;
+accumulated_current = accumulated_current + diff_current;
+
+%% 
+
+%Evaluate next n-1 elements
+
+iterator = 2;
+while iterator <= steps
+    electrons = diff_current / e;
+    H2_used = electrons / 2;
+    H2O_created = H2_used;
+    O2_used = electrons / 4;
+    moles_H2_used = H2_used / N_A;
+    moles_H2O_created = H2O_created / N_A;
+    moles_O2_used = O2_used / N_A;
+    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2)
+
+end
 
 
 
