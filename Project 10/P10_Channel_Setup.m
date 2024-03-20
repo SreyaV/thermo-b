@@ -324,3 +324,19 @@ hold off;
 
 plotfixer()
 
+%% 
+
+figure(2)
+hold on;
+plot(distance_along_channel, hydrogen_mole_fractions)
+plot(distance_along_channel, oxygen_mole_fractions)
+plot(distance_along_channel, water_mole_fractions)
+plot(distance_along_channel, equ_electric_potential)
+plot(distance_along_channel, actual_electric_potential, 'k--')
+xlabel("Distance Along Channel (m)")
+title("1000 C, 3 bar, 0.61 V")
+legend("xH2 (anode)", "xO2 (cathode)", "xH2O (anode)", "\Delta \phi equil. (V)", "\Delta \phi cell (V)")
+hold off;
+
+plotfixer()
+

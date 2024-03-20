@@ -13,8 +13,8 @@ k_B = R/N_A;        % J/particle-K
 
 % Values you can set!
 
-voltage = 0.70; %Change to whatever is desired
-steps = 100; %Change to whatever is desired
+voltage = 0.61; %Change to whatever is desired
+steps = 500; %Change to whatever is desired
 
 
 %% 
@@ -261,17 +261,20 @@ while iterator <= steps
     accumulated_current = accumulated_current + diff_current;
 
     enthalpy_1 = enthalpy_anode_out* (molar_flow_rate_H2 + molar_flow_rate_H2O);
-    enthalpy_1 = enthalpy_cathode_ * (molar_flow_rate_O2 + molar_flow_rate_N2);
+    enthalpy_1 = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
     enthalpy_1 = enthalpy_1 / 1000;
 
-    distance_along_channel(i) = dlength*(iterator);
-    current_density_array(1) = i;
-    heat_flux_array(1) = 
-    electrical_power_density(1) = 0;
-    hydrogen_mole_fractions(1) = x_H2;
-    water_mole_fractions(1) = x_H2O;
-    oxygen_mole_fractions(1) = x_O2;
-    equ_electric_potential(1) = phi;
+    distance_along_channel(iterator) = dlength*(iterator);
+    current_density_array(iterator) = i;
+    electrical_power_density(iterator) = i*voltage;
+    heat_flux_array(iterator) = enthalpy_0 - enthalpy_1 - i*voltage;
+    hydrogen_mole_fractions(iterator) = x_H2;
+    water_mole_fractions(iterator) = x_H2O;
+    oxygen_mole_fractions(iterator) = x_O2;
+    equ_electric_potential(iterator) = phi;
+
+    enthalpy_anode_in = enthalpy_anode_out;
+    enthalpy_cathode_in = enthalpy_cathode_out;
 
 
     iterator = iterator + 1;
@@ -295,5 +298,34 @@ heat_transfer = (enthalpy_start_anode+enthalpy_start_cathode)/1000 - (enthalpy_o
 
 
 %For Graph 2
+%plot all the following:
 
+distance_along_channel;
+current_density_array;
+heat_flux_array ;
+electrical_power_density ;
+hydrogen_mole_fractions ;
+water_mole_fractions;
+oxygen_mole_fractions;
+equ_electric_potential;
+actual_electric_potential;
 
+%% 
+
+figure(1)
+hold on;
+plot(distance_along_channel, current_density_array./1000)
+plot(distance_along_channel, heat_flux_array./1000)
+plot(distance_along_channel, electrical_power_density./1000)
+xlabel("Distance Along Channel (m)")
+title("1000 C, 3 bar, 0.61 V")
+legend("Current Density (kA/m2)", "Heat Flux (kW/m2)", "Elec. Power Density (kW/m2)")
+hold off;
+
+plotfixer()
+
+%% 
+
+figure(2)
+hold on;
+plot(distance_along_channel, )
