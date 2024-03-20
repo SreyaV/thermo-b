@@ -21,8 +21,9 @@ end
 
 helperFun = @(icIter)(SOFC_Element_icTKL(icIter,x_eq,mu_eq,Tcell,K,L,ioa,ioc)-V);
 
-options = optimoptions('fsolve','OptimalityTolerance',1e-12,'Display','none');
-icSol = fsolve(helperFun,ic_guess,options);
+% options = optimoptions('fsolve','OptimalityTolerance',1e-12,'Display','none');
+options = optimset('Display','none','TolFun',1e-12);
+icSol = fzero(helperFun,ic_guess,options);
 
 [phi,mu,xac] = SOFC_Element_icTKL(icSol,x_eq,mu_eq,Tcell,K,L,ioa,ioc);
 
