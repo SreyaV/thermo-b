@@ -1,5 +1,4 @@
-function [accumulated_current,power,heat_transfer,fuel_utilization,alongChannelVals] = ...
-    channel(voltage, steps)
+function [accumulated_current,power,heat_transfer,fuel_utilization,alongChannelVals,LHV_H2_unused,LHV_eff_input,LHV_eff_consumed] = channel_LHV(voltage, steps)
 % Takes channel voltage and # of steps as input. Outputs current
 % created by channel
     
@@ -12,7 +11,7 @@ channel_length = 0.5;
 
 Tcell = 1000 + 273;
 Pcell = 3e5;
-inlet_velocity = 1; % m/s
+inlet_velocity = 0.5; % m/s
 lambda = 2;
 excess_air = 1.0;
 
@@ -284,6 +283,16 @@ heat_transfer = (enthalpy_start_anode+enthalpy_start_cathode)/1000 - (enthalpy_o
 %use enthalpy function from cantera, its by kmol, divide by 1000 to get
 %per mole, convert to mass
 
+% LHVs for a given power
+gas_H2 = Solution('GRI30.yaml');
+LHV_hyd = 119.96*1e3; % kJ/kg
+x = zeros(Nsp,1);
+x(H2)  = 1;
+set(gas_H2,'Temperature',Tcell,'Pressure',Pcell,'MoleFractions',x);
+M_H2 = meanMolecularWeight(gas_H2);
+LHV_H2_unused = molar_flow_rate_H2 * M_H2 * LHV_hyd /200;
+LHV_eff_input = power / (initial_H2*M_H2*LHV_hyd);
+LHV_eff_consumed = power/ ((-molar_flow_rate_H2 + initial_H2) *LHV_hyd*M_H2);
 
 %For Graph 2
 %plot all the following:
