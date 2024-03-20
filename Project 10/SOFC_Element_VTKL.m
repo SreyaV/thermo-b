@@ -30,4 +30,6 @@ ic = icSol;
 
 delta = phi - V;
 
+ic = ic / 1000 ; % Checking if it's accidentally in mA
+
 end

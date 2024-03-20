@@ -9,6 +9,14 @@ h   = 6.62607e-34;  % J-s
 F   = e*N_A;        % Coul/mole-of-unit-charge and (J/mol)/(eV/particle)
 k_B = R/N_A;        % J/particle-K
 
+%% VALUES TO SET
+
+% Values you can set!
+
+voltage = 0.5; %Change to whatever is desired
+steps = 100; %Change to whatever is desired
+
+
 %% 
 
 % Set geometries and base variables
@@ -57,13 +65,13 @@ kappa_YSZ = 15;                 % S/m or (A/m2)/(V/m)
 % (product of concentration and molar diffusivity) expressed
 % in terms of chemical potential as the driving force is this
 % over (zF)^2.
-kappa_O = kappa_YSZ/(-2*F)^2    % (mol-O/m2/s)/(J/mol-O/m)
+kappa_O = kappa_YSZ/(-2*F)^2 ;   % (mol-O/m2/s)/(J/mol-O/m)
 % Set the electron specific conductivity of the nickel.
 kappa_Ni = 2e6;                 % S/m or (A/m2)/(V/m)
-kappa_E = kappa_Ni/(-1*F)^2     % (mol-E/m2/s)/(J/mol-E/m)
+kappa_E = kappa_Ni/(-1*F)^2 ;    % (mol-E/m2/s)/(J/mol-E/m)
 concentration  = Pcell/(R*Tcell);                           % mol/m3
-D_O2_N2  = Binary_Diffusivity_ijTP(iO2,iN2,Tcell,Pcell)     % m2/s
-D_H2_H2O = Binary_Diffusivity_ijTP(iH2,iH2O,Tcell,Pcell)
+D_O2_N2  = Binary_Diffusivity_ijTP(iO2,iN2,Tcell,Pcell) ;    % m2/s
+D_H2_H2O = Binary_Diffusivity_ijTP(iH2,iH2O,Tcell,Pcell);
 
 K(1) = kappa_E;
 K(2) = kappa_O;
@@ -139,12 +147,12 @@ mu_eq = [muEa_eq muH2a_eq muH2Oa_eq muO_eq muO2c_eq muEc_eq];
 A = channel_width*channel_height; % Cross-sectional area of the inlet in m^2
 Q = inlet_velocity * A;                            % Volume flow rate in m^3/s
 n = anode_density * Q / m_anode;     % Moles per second
-
+%kg/m^3 * m^3/s / kg/mol
 %Using molar flow rate to find molar flow rate of each gas species
 molar_flow_rate_H2 = n*x_H2;
 molar_flow_rate_H2O = n*x_H2O;
 molar_flow_rate_O2 = molar_flow_rate_H2;
-molar_flow_rate_N2 = molar_flow_rate_O2 * ;
+molar_flow_rate_N2 = molar_flow_rate_O2 * (1/x_O2);
 
 %TO GET AIR, FIRST FIND HYDROGEN FLOW RATE. KNOW THE STOCHIOMETRY FOR
 %HYDROGEN AND OXYGEN. STOCHIOMETRIC WOULD BE THAT OXYGEN IS HALF OF H2, BUT
@@ -155,22 +163,11 @@ molar_flow_rate_N2 = molar_flow_rate_O2 * ;
 
 %% 
 
-% Values you can set!
 
-voltage = 1; %Change to whatever is desired
-steps = 100; %Change to whatever is desired
 dlength = channel_length / steps;
 darea = dlength * channel_width;
 
 %% 
-voltage
-x_eq
-mu_eq
-Tcell
-K
-L
-ioa
-ioc
 % Evaluate first button cell differential element
 [i mu xac] = SOFC_Element_VTKL(voltage,x_eq,mu_eq,Tcell,K,L,ioa,ioc, 1000)
 
@@ -194,16 +191,16 @@ while iterator <= steps
     %Use Avogradro's number to calculate the moles / second of each gas
     %that was either used or created in this differential button cell
     %element
-    moles_H2_used = H2_used / N_A;
-    moles_H2O_created = H2O_created / N_A;
-    moles_O2_used = O2_used / N_A;
+    moles_H2_used = H2_used / N_A
+    moles_H2O_created = H2O_created / N_A
+    moles_O2_used = O2_used / N_A
 
     %Update the molar flow rates using the prior values calculated
-    molar_flow_rate_O2 = molar_flow_rate_O2 - moles_O2_used;
-    molar_flow_rate_N2 = molar_flow_rate_N2; %molar flow rate of n2 should be staying the same but total molar flow rate on cathode side should be decreasing
+    molar_flow_rate_O2 = molar_flow_rate_O2 - moles_O2_used
+    molar_flow_rate_N2 = molar_flow_rate_N2 %molar flow rate of n2 should be staying the same but total molar flow rate on cathode side should be decreasing
     %mole fraction of n2 increases. 
-    molar_flow_rate_H2 = molar_flow_rate_H2 - moles_H2_used;
-    molar_flow_rate_H2O = molar_flow_rate_H2O + moles_H2O_created;
+    molar_flow_rate_H2 = molar_flow_rate_H2 - moles_H2_used
+    molar_flow_rate_H2O = molar_flow_rate_H2O + moles_H2O_created
    
     x_H2 = (molar_flow_rate_H2) / (molar_flow_rate_H2 + molar_flow_rate_H2O);
     x_H2O = molar_flow_rate_H2O / (molar_flow_rate_H2O + molar_flow_rate_H2);
@@ -213,10 +210,11 @@ while iterator <= steps
     [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell);
     %Use the depleted gas arrays to calculate the current density
     %produced by the next differential button cell element
-    [i mu xac] = SOFC_Element_V(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc)
+    [i mu xac] = SOFC_Element_V(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc);
     %Calculate the current as current density * area
     diff_current = i*darea;
     accumulated_current = accumulated_current + diff_current;
+    iterator = iterator + 1;
 
 end
 
