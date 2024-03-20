@@ -13,8 +13,8 @@ k_B = R/N_A;        % J/particle-K
 
 % Values you can set!
 
-voltage = 0.70; %Change to whatever is desired
-steps = 100; %Change to whatever is desired
+voltage = 0.61; %Change to whatever is desired
+steps = 500; %Change to whatever is desired
 
 
 %% 
@@ -273,6 +273,9 @@ while iterator <= steps
     oxygen_mole_fractions(iterator) = x_O2;
     equ_electric_potential(iterator) = phi;
 
+    enthalpy_anode_in = enthalpy_anode_out;
+    enthalpy_cathode_in = enthalpy_cathode_out;
+
 
     iterator = iterator + 1;
     %disp(i);
@@ -306,4 +309,18 @@ water_mole_fractions;
 oxygen_mole_fractions;
 equ_electric_potential;
 actual_electric_potential;
+
+%% 
+
+figure(1)
+hold on;
+plot(distance_along_channel, current_density_array./1000)
+plot(distance_along_channel, heat_flux_array./1000)
+plot(distance_along_channel, electrical_power_density./1000)
+xlabel("Distance Along Channel (m)")
+title("1000 C, 3 bar, 0.61 V")
+legend("Current Density (kA/m2)", "Heat Flux (kW/m2)", "Elec. Power Density (kW/m2)")
+hold off;
+
+plotfixer()
 
