@@ -155,8 +155,8 @@ n = anode_density * Q / (0.001*m_anode);     % Moles per second
 %Using molar flow rate to find molar flow rate of each gas species
 molar_flow_rate_H2 = n*x_H2;
 molar_flow_rate_H2O = n*x_H2O;
-molar_flow_rate_O2 = molar_flow_rate_H2 / 2 * lambda;
-molar_flow_rate_N2 = molar_flow_rate_O2 * (1/x_O2);
+molar_flow_rate_O2 = molar_flow_rate_H2;
+molar_flow_rate_N2 = molar_flow_rate_O2 * x_N2/x_O2;
 
 %TO GET AIR, FIRST FIND HYDROGEN FLOW RATE. KNOW THE STOCHIOMETRY FOR
 %HYDROGEN AND OXYGEN. STOCHIOMETRIC WOULD BE THAT OXYGEN IS HALF OF H2, BUT
