@@ -91,6 +91,19 @@ ioc = ioco*exp(-(Ea_ioc/R)*(1/Tcell - 1/T_ioco));
 Anode_Cathode_Ratio = 100;
 ioa = Anode_Cathode_Ratio*ioc;
 
+distance_along_channel = zeros(1, steps);
+current_density_array = zeros(1, steps);
+heat_flux_array = zeros(1, steps);
+electrical_power_density = zeros(1, steps);
+hydrogen_mole_fractions = zeros(1, steps);
+water_mole_fractions = zeros(1, steps);
+oxygen_mole_fractions = zeros(1, steps);
+equ_electric_potential = zeros(1, steps);
+actual_electric_potential = ones(1, steps).*voltage;
+
+dlength = channel_length / steps;
+darea = dlength * channel_width;
+
 %% 
 
 % Set arrays to pass to functions
@@ -106,7 +119,7 @@ muanode = chemPotentials(gas);      % J/kmol
 muanode = muanode/1000;             % J/mol
 anode_density = density(gas);
 m_anode = meanMolecularWeight(gas);
-enthalpy_anode = enthalpy_mole(gas);
+enthalpy_anode_in = enthalpy_mole(gas);
 
 
 % Set the composition and pressure at the cathode:
@@ -120,7 +133,7 @@ mucathode = chemPotentials(gas);    % J/kmol
 mucathode = mucathode/1000;         % J/mol
 air_density = density(gas);
 m_air = meanMolecularWeight(gas);
-enthalpy_cathode = enthalpy_mole(gas);
+enthalpy_cathode_in = enthalpy_mole(gas);
 
 % Save the needed mole fractions and chemical potentials in their own 
 % variable names.
@@ -168,14 +181,14 @@ initial_H2 = molar_flow_rate_H2;
 %BUT IT'S AIR, SO USE THE FLOW RATE OF OXYGEN TO CALCULATE FLOW RATE OF
 %NITROGEN TOO, AND ADD.
 
-enthalpy_in_anode = enthalpy_anode * (molar_flow_rate_H2 + molar_flow_rate_H2O);
-enthalpy_in_cathode = enthalpy_cathode * (molar_flow_rate_O2 + molar_flow_rate_N2);
+enthalpy_start_anode = enthalpy_anode_in * (molar_flow_rate_H2 + molar_flow_rate_H2O);
+enthalpy_start_cathode = enthalpy_cathode_in * (molar_flow_rate_O2 + molar_flow_rate_N2);
+
 
 %% 
 
 
-dlength = channel_length / steps;
-darea = dlength * channel_width;
+
 
 %% 
 % Evaluate first button cell differential element
@@ -185,11 +198,20 @@ phi_eq = SOFC_Element_icTKL(0,x_eq,mu_eq,Tcell,K,L,ioa,ioc);
 walkPotVec = linspace(phi_eq,voltage,100);
 i=0;
 for walkiter = 1:1:length(walkPotVec)
-    [i mu xac delta] = SOFC_Element_VTKL(walkPotVec(walkiter),x_eq,mu_eq,Tcell,K,L,ioa,ioc, i);
+    [i mu xac delta phi] = SOFC_Element_VTKL(walkPotVec(walkiter),x_eq,mu_eq,Tcell,K,L,ioa,ioc, i);
 end
 
 diff_current = i*darea;
 accumulated_current = accumulated_current + diff_current;
+
+distance_along_channel(1) = 0;
+current_density_array(1) = 0;
+heat_flux_array(1) = 0;
+electrical_power_density(1) = 0;
+hydrogen_mole_fractions(1) = x_H2;
+water_mole_fractions(1) = x_H2O;
+oxygen_mole_fractions(1) = x_O2;
+equ_electric_potential(1) = phi_eq;
 
 %% 
 
@@ -197,6 +219,10 @@ accumulated_current = accumulated_current + diff_current;
 
 iterator = 2;
 while iterator <= steps
+    
+    enthalpy_0 = enthalpy_anode_in* (molar_flow_rate_H2 + molar_flow_rate_H2O);
+    enthalpy_0 = enthalpy_cathode_in * (molar_flow_rate_O2 + molar_flow_rate_N2);
+    enthalpy_0 = enthalpy_0 / 1000;
 
     %Calculate # of electrons used in chemical reaction
     electrons = diff_current / e;
@@ -223,24 +249,42 @@ while iterator <= steps
     x_H2O = molar_flow_rate_H2O / (molar_flow_rate_H2O + molar_flow_rate_H2);
     x_O2 = molar_flow_rate_O2 / (molar_flow_rate_O2 + molar_flow_rate_N2);
     x_N2 = molar_flow_rate_N2 / (molar_flow_rate_N2 + molar_flow_rate_O2);
+    
+    
     %Get the new anode/cathod characterization arrays
-    [x_step mu_step enthalpy_anode enthalpy_cathode] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell);
+    [x_step mu_step enthalpy_anode_out enthalpy_cathode_out] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell);
     %Use the depleted gas arrays to calculate the current density
     %produced by the next differential button cell element
-    [i mu xac delta] = SOFC_Element_VTKL(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc,i);
+    [i mu xac delta phi] = SOFC_Element_VTKL(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc,i);
     %Calculate the current as current density * area
     diff_current = i*darea;
     accumulated_current = accumulated_current + diff_current;
+
+    enthalpy_1 = enthalpy_anode_out* (molar_flow_rate_H2 + molar_flow_rate_H2O);
+    enthalpy_1 = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
+    enthalpy_1 = enthalpy_1 / 1000;
+
+    distance_along_channel(iterator) = dlength*(iterator);
+    current_density_array(iterator) = i;
+    electrical_power_density(iterator) = i*voltage;
+    heat_flux_array(iterator) = enthalpy_0 - enthalpy_1 - i*voltage;
+    hydrogen_mole_fractions(iterator) = x_H2;
+    water_mole_fractions(iterator) = x_H2O;
+    oxygen_mole_fractions(iterator) = x_O2;
+    equ_electric_potential(iterator) = phi;
+
+
     iterator = iterator + 1;
     %disp(i);
 end
 
+%For Graph 1
 accumulated_current
 power = accumulated_current*voltage;
 fuel_utilization = 1 - molar_flow_rate_H2 / initial_H2;
 enthalpy_out_anode = enthalpy_anode * (molar_flow_rate_H2 + molar_flow_rate_H2O);
 enthalpy_out_cathode = enthalpy_cathode * (molar_flow_rate_O2 + molar_flow_rate_N2);
-heat_transfer = (enthalpy_in_anode+enthalpy_in_cathode)/1000 - (enthalpy_out_anode+enthalpy_out_cathode)/1000 - power;
+heat_transfer = (enthalpy_start_anode+enthalpy_start_cathode)/1000 - (enthalpy_out_anode+enthalpy_out_cathode)/1000 - power;
 
 %enthalpy of reactants going in, H2 and O2, N2, H2O
 %enthalpy of products coming out, same things coming out
@@ -249,4 +293,17 @@ heat_transfer = (enthalpy_in_anode+enthalpy_in_cathode)/1000 - (enthalpy_out_ano
 %use enthalpy function from cantera, its by kmol, divide by 1000 to get
 %per mole, convert to mass
 
+
+%For Graph 2
+%plot all the following:
+
+distance_along_channel;
+current_density_array;
+heat_flux_array ;
+electrical_power_density ;
+hydrogen_mole_fractions ;
+water_mole_fractions;
+oxygen_mole_fractions;
+equ_electric_potential;
+actual_electric_potential;
 

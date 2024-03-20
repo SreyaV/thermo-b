@@ -1,4 +1,4 @@
-function [ic,mu,xac,delta] = SOFC_Element_VTKL(V,x_eq,mu_eq,Tcell,K,L,ioa,ioc,ic_guess,varagin)
+function [ic,mu,xac,delta, phi] = SOFC_Element_VTKL(V,x_eq,mu_eq,Tcell,K,L,ioa,ioc,ic_guess,varagin)
 
 % Return the current density and the array of electrochemical potentials (J/mol) for a
 % differential area element of a hydrogen-water-air SOFC operating at
