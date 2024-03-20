@@ -13,7 +13,7 @@ k_B = R/N_A;        % J/particle-K
 
 % Values you can set!
 
-voltage = 0.5; %Change to whatever is desired
+voltage = 0.61; %Change to whatever is desired
 steps = 500; %Change to whatever is desired
 
 
@@ -26,7 +26,7 @@ channel_length = 0.5;
 
 Tcell = 1000 + 273;
 Pcell = 3e5;
-inlet_velocity = 0.5; % m/s
+inlet_velocity = 1; % m/s
 lambda = 2;
 excess_air = 1.0;
 
@@ -263,7 +263,7 @@ while iterator <= steps
     accumulated_current = accumulated_current + diff_current;
 
     enthalpy_1 = enthalpy_anode_out* (molar_flow_rate_H2 + molar_flow_rate_H2O);
-    enthalpy_1 = enthalpy_1 + enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
+    enthalpy_1 = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
     enthalpy_1 = enthalpy_1 / 1000 / darea;
 
     distance_along_channel(iterator) = dlength*(iterator);
@@ -317,7 +317,7 @@ close all;
 figure(1)
 hold on;
 plot(distance_along_channel, current_density_array./1000)
-plot(distance_along_channel, heat_flux_array./1000)
+plot(distance_along_channel, heat_flux_array.*-1.9/1000)
 plot(distance_along_channel, electrical_power_density./1000)
 xlabel("Distance Along Channel (m)")
 title("1000 C, 3 bar, 0.5 V")
