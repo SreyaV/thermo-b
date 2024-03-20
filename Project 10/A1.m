@@ -161,6 +161,14 @@ for viter = 1:1:length(voltageVec)
     end
 end
 
+% second thingy
+[~,maxiter] = max(power);
+maxP_voltage = voltageVec(maxiter);
+currSteps = 100;
+[maxP_current,maxP,maxP_heat_tranasfer,maxP_fuel_utilization,maxP_alongChannel] = ...
+        channel(maxP_voltage,currSteps);
+
+
 %% make plots
 figure(1)
 plot(currentVals,voltageVec,'k-','LineWidth',2);
@@ -176,6 +184,19 @@ xlabel('Cell current (A)');
 lgd = legend('Electric potential (V)','Power output/100 (W)','Heat transfer/100 (W)','Fuel utilization');
 
 set(lgd,'Location','NorthWest','Box','Off');
+
+set(gca,'FontSize',26,'FontWeight','Bold');
+set(gcf,'Color','white','Position',[680 172 975 706]);
+
+figure(2);clf;
+plot(maxP_alongChannel.distance_along_normal,...
+    maxP_alongChannel.current_density_array/1000,'k-','LineWidth',2);
+hold on;
+plot(maxP_alongChannel.distance_along_normal,...
+    maxP_alongChannel.electrical_power_density/1000,'b-','LineWidth',2);
+plot(maxP_alongChannel.distance_along_normal,...
+    abs(maxP_alongChannel.heat_flux_array/1000),'r-','LineWidth',2);
+
 
 set(gca,'FontSize',26,'FontWeight','Bold');
 set(gcf,'Color','white','Position',[680 172 975 706]);

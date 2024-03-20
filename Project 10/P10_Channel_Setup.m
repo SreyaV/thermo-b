@@ -285,8 +285,8 @@ end
 accumulated_current
 power = accumulated_current*voltage;
 fuel_utilization = 1 - molar_flow_rate_H2 / initial_H2;
-enthalpy_out_anode = enthalpy_anode * (molar_flow_rate_H2 + molar_flow_rate_H2O);
-enthalpy_out_cathode = enthalpy_cathode * (molar_flow_rate_O2 + molar_flow_rate_N2);
+enthalpy_out_anode = enthalpy_anode_out * (molar_flow_rate_H2 + molar_flow_rate_H2O);
+enthalpy_out_cathode = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
 heat_transfer = (enthalpy_start_anode+enthalpy_start_cathode)/1000 - (enthalpy_out_anode+enthalpy_out_cathode)/1000 - power;
 
 %enthalpy of reactants going in, H2 and O2, N2, H2O
