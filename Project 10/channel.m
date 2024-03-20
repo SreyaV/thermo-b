@@ -141,7 +141,7 @@ function [accumulated_current] = channel(voltage, steps)
     molar_flow_rate_H2 = n*x_H2;
     molar_flow_rate_H2O = n*x_H2O;
     molar_flow_rate_O2 = molar_flow_rate_H2;
-    molar_flow_rate_N2 = molar_flow_rate_O2 * (1/x_O2);
+    molar_flow_rate_N2 = molar_flow_rate_O2 * (x_N2/x_O2);
     
     %TO GET AIR, FIRST FIND HYDROGEN FLOW RATE. KNOW THE STOCHIOMETRY FOR
     %HYDROGEN AND OXYGEN. STOCHIOMETRIC WOULD BE THAT OXYGEN IS HALF OF H2, BUT
@@ -166,7 +166,7 @@ function [accumulated_current] = channel(voltage, steps)
     for walkiter = 1:1:length(walkPotVec)
         [i mu xac delta] = SOFC_Element_VTKL(walkPotVec(walkiter),x_eq,mu_eq,Tcell,K,L,ioa,ioc, i);
     end
-
+    
     diff_current = i*darea;
     accumulated_current = accumulated_current + diff_current;
     

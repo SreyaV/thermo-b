@@ -13,7 +13,7 @@ k_B = R/N_A;        % J/particle-K
 
 % Values you can set!
 
-voltage = 0.80; %Change to whatever is desired
+voltage = 0.70; %Change to whatever is desired
 steps = 100; %Change to whatever is desired
 
 
@@ -156,7 +156,7 @@ n = anode_density * Q / (0.001*m_anode);     % Moles per second
 molar_flow_rate_H2 = n*x_H2;
 molar_flow_rate_H2O = n*x_H2O;
 molar_flow_rate_O2 = molar_flow_rate_H2;
-molar_flow_rate_N2 = molar_flow_rate_O2 * x_N2/x_O2;
+molar_flow_rate_N2 = molar_flow_rate_O2 * (x_N2/x_O2);
 
 %TO GET AIR, FIRST FIND HYDROGEN FLOW RATE. KNOW THE STOCHIOMETRY FOR
 %HYDROGEN AND OXYGEN. STOCHIOMETRIC WOULD BE THAT OXYGEN IS HALF OF H2, BUT
@@ -181,7 +181,7 @@ i=0;
 for walkiter = 1:1:length(walkPotVec)
     [i mu xac delta] = SOFC_Element_VTKL(walkPotVec(walkiter),x_eq,mu_eq,Tcell,K,L,ioa,ioc, i);
 end
-return;
+
 diff_current = i*darea;
 accumulated_current = accumulated_current + diff_current;
 
