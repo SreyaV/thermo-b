@@ -1,4 +1,4 @@
-function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell)
+function [x mu, enthalpy_anode, enthalpy_cathode] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell)
 % Takes mole fractions of the anode and cathode gases, returns
 % composition and chemical potential arrays
 
@@ -18,6 +18,7 @@ function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell)
     % Get the chemical potentials:
     muanode = chemPotentials(gas);      % J/kmol
     muanode = muanode/1000;             % J/mol
+    enthalpy_anode = enthalpy_mole(gas);
     
     % Set the composition and pressure at the cathode:
     xcathode = zeros(Nsp,1);
@@ -28,7 +29,8 @@ function [x mu] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell)
     % Get the chemical potentials:
     mucathode = chemPotentials(gas);    % J/kmol
     mucathode = mucathode/1000;         % J/mol
-    
+    enthalpy_cathode = enthalpy_mole(gas);
+
     % Save the needed mole fractions and chemical potentials in their own 
     % variable names.
     xH2a_eq   = xanode(H2);

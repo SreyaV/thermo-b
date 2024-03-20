@@ -106,6 +106,7 @@ muanode = chemPotentials(gas);      % J/kmol
 muanode = muanode/1000;             % J/mol
 anode_density = density(gas);
 m_anode = meanMolecularWeight(gas);
+enthalpy_anode = enthalpy_mole(gas);
 
 
 % Set the composition and pressure at the cathode:
@@ -119,6 +120,7 @@ mucathode = chemPotentials(gas);    % J/kmol
 mucathode = mucathode/1000;         % J/mol
 air_density = density(gas);
 m_air = meanMolecularWeight(gas);
+enthalpy_cathode = enthalpy_mole(gas);
 
 % Save the needed mole fractions and chemical potentials in their own 
 % variable names.
@@ -157,6 +159,7 @@ molar_flow_rate_H2 = n*x_H2;
 molar_flow_rate_H2O = n*x_H2O;
 molar_flow_rate_O2 = molar_flow_rate_H2;
 molar_flow_rate_N2 = molar_flow_rate_O2 * (x_N2/x_O2);
+initial_H2 = molar_flow_rate_H2;
 
 %TO GET AIR, FIRST FIND HYDROGEN FLOW RATE. KNOW THE STOCHIOMETRY FOR
 %HYDROGEN AND OXYGEN. STOCHIOMETRIC WOULD BE THAT OXYGEN IS HALF OF H2, BUT
@@ -164,6 +167,9 @@ molar_flow_rate_N2 = molar_flow_rate_O2 * (x_N2/x_O2);
 %HYDROGEN IN THE ANODE
 %BUT IT'S AIR, SO USE THE FLOW RATE OF OXYGEN TO CALCULATE FLOW RATE OF
 %NITROGEN TOO, AND ADD.
+
+enthalpy_in_anode = enthalpy_anode * (molar_flow_rate_H2 + molar_flow_rate_H2O);
+enthalpy_in_cathode = enthalpy_cathode * (molar_flow_rate_O2 + molar_flow_rate_N2);
 
 %% 
 
@@ -218,7 +224,7 @@ while iterator <= steps
     x_O2 = molar_flow_rate_O2 / (molar_flow_rate_O2 + molar_flow_rate_N2);
     x_N2 = molar_flow_rate_N2 / (molar_flow_rate_N2 + molar_flow_rate_O2);
     %Get the new anode/cathod characterization arrays
-    [x_step mu_step] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell);
+    [x_step mu_step enthalpy_anode enthalpy_cathode] = anode_cathode(x_H2, x_H2O, x_O2, x_N2, Tcell, Pcell);
     %Use the depleted gas arrays to calculate the current density
     %produced by the next differential button cell element
     [i mu xac delta] = SOFC_Element_VTKL(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc,i);
@@ -226,9 +232,21 @@ while iterator <= steps
     diff_current = i*darea;
     accumulated_current = accumulated_current + diff_current;
     iterator = iterator + 1;
-    disp(i)
+    %disp(i);
 end
 
 accumulated_current
+power = accumulated_current*voltage;
+fuel_utilization = 1 - molar_flow_rate_H2 / initial_H2;
+enthalpy_out_anode = enthalpy_anode * (molar_flow_rate_H2 + molar_flow_rate_H2O);
+enthalpy_out_cathode = enthalpy_cathode * (molar_flow_rate_O2 + molar_flow_rate_N2);
+heat_transfer = (enthalpy_in_anode+enthalpy_in_cathode)/1000 - (enthalpy_out_anode+enthalpy_out_cathode)/1000 - power;
+
+%enthalpy of reactants going in, H2 and O2, N2, H2O
+%enthalpy of products coming out, same things coming out
+%enthalpy of reactants coming in = enthalpy coming out + output power +
+%heat transfer
+%use enthalpy function from cantera, its by kmol, divide by 1000 to get
+%per mole, convert to mass
 
 
