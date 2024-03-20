@@ -13,8 +13,8 @@ k_B = R/N_A;        % J/particle-K
 
 % Values you can set!
 
-voltage = 0.61; %Change to whatever is desired
-steps = 50; %Change to whatever is desired
+voltage = 0.5; %Change to whatever is desired
+steps = 500; %Change to whatever is desired
 
 
 %% 
@@ -26,7 +26,7 @@ channel_length = 0.5;
 
 Tcell = 1000 + 273;
 Pcell = 3e5;
-inlet_velocity = 1; % m/s
+inlet_velocity = 0.5; % m/s
 lambda = 2;
 excess_air = 1.0;
 
@@ -49,6 +49,7 @@ Nsp = nSpecies(gas);
 
 % Set the path lengths.
 L_YSZ  = 50e-6;                 % m
+%L_YSZ  = 0.5e-3;   
 L_GDLa = 5e-3;
 L_GDLc = 5e-3;
 L_Nia  = 0;                     % In case you want the metal too.
@@ -222,7 +223,7 @@ while iterator <= steps
     
     enthalpy_0 = enthalpy_anode_in* (molar_flow_rate_H2 + molar_flow_rate_H2O);
     enthalpy_0 = enthalpy_cathode_in * (molar_flow_rate_O2 + molar_flow_rate_N2);
-    enthalpy_0 = enthalpy_0 / 1000;
+    enthalpy_0 = enthalpy_0 / 1000 / darea;
 
     %Calculate # of electrons used in chemical reaction
     electrons = diff_current / e;
@@ -256,14 +257,14 @@ while iterator <= steps
     %Use the depleted gas arrays to calculate the current density
     %produced by the next differential button cell element
     [i mu xac delta phi] = SOFC_Element_VTKL(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc,i);
-    actual_electric_potential(iterator) = SOFC_Element_icTKL(0,x_step,mu_step,Tcell,K,L,ioa,ioc);
+    equ_electric_potential(iterator) = SOFC_Element_icTKL(0,x_step,mu_step,Tcell,K,L,ioa,ioc);
     %Calculate the current as current density * area
     diff_current = i*darea;
     accumulated_current = accumulated_current + diff_current;
 
     enthalpy_1 = enthalpy_anode_out* (molar_flow_rate_H2 + molar_flow_rate_H2O);
     enthalpy_1 = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
-    enthalpy_1 = enthalpy_1 / 1000;
+    enthalpy_1 = enthalpy_1 / 1000 / darea;
 
     distance_along_channel(iterator) = dlength*(iterator);
     current_density_array(iterator) = i;
@@ -272,7 +273,7 @@ while iterator <= steps
     hydrogen_mole_fractions(iterator) = x_H2;
     water_mole_fractions(iterator) = x_H2O;
     oxygen_mole_fractions(iterator) = x_O2;
-    equ_electric_potential(iterator) = phi;
+    %equ_electric_potential(iterator) = phi;
 
     enthalpy_anode_in = enthalpy_anode_out;
     enthalpy_cathode_in = enthalpy_cathode_out;
@@ -316,11 +317,11 @@ close all;
 figure(1)
 hold on;
 plot(distance_along_channel, current_density_array./1000)
-plot(distance_along_channel, heat_flux_array./1000)
+plot(distance_along_channel, heat_flux_array.*-1.9/1000)
 plot(distance_along_channel, electrical_power_density./1000)
 xlabel("Distance Along Channel (m)")
-title("1000 C, 3 bar, 0.61 V")
-legend("Current Density (kA/m2)", "Heat Flux (kW/m2)", "Elec. Power Density (kW/m2)")
+title("1000 C, 3 bar, 0.5 V")
+legend("Current Density (kA/m^2)", "Heat Flux (kW/m^2)", "Elec. Power Density (kW/m^2)")
 hold off;
 
 plotfixer()
