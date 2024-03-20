@@ -148,7 +148,7 @@ phi_eq = SOFC_Element_icTKL(0,x_eq,mu_eq,Tcell,K,L,ioa,ioc);
 
 
 %%
-nVolts = 50;
+nVolts = 10;
 voltageVec = linspace(phi_eq,0.001,nVolts);
 currSteps = 10;
 for viter = 1:1:length(voltageVec)
@@ -189,14 +189,29 @@ set(gca,'FontSize',26,'FontWeight','Bold');
 set(gcf,'Color','white','Position',[680 172 975 706]);
 
 figure(2);clf;
-plot(maxP_alongChannel.distance_along_normal,...
+plot(maxP_alongChannel.distance_along_channel,...
     maxP_alongChannel.current_density_array/1000,'k-','LineWidth',2);
 hold on;
-plot(maxP_alongChannel.distance_along_normal,...
+plot(maxP_alongChannel.distance_along_channel,...
     maxP_alongChannel.electrical_power_density/1000,'b-','LineWidth',2);
-plot(maxP_alongChannel.distance_along_normal,...
+plot(maxP_alongChannel.distance_along_channel,...
     abs(maxP_alongChannel.heat_flux_array/1000),'r-','LineWidth',2);
 
 
 set(gca,'FontSize',26,'FontWeight','Bold');
 set(gcf,'Color','white','Position',[680 172 975 706]);
+
+
+
+figure(3);clf;
+hold on;
+plot(maxP_alongChannel.distance_along_channel, maxP_alongChannel.hydrogen_mole_fractions,'k-','LineWidth',2)
+plot(maxP_alongChannel.distance_along_channel, maxP_alongChannel.oxygen_mole_fractions,'b-','LineWidth',2)
+plot(maxP_alongChannel.distance_along_channel, maxP_alongChannel.water_mole_fractions,'r-','LineWidth',2)
+plot(maxP_alongChannel.distance_along_channel, maxP_alongChannel.equ_electric_potential,'m-','LineWidth',2)
+plot(maxP_alongChannel.distance_along_channel, maxP_alongChannel.actual_electric_potential, 'k--','Linewidth',2)
+
+xlabel("Distance Along Channel (m)")
+title(['1000 C, 3 bar, ' num2str(round(maxP_voltage,3)) ' V'])
+
+legend("xH2 (anode)", "xO2 (cathode)", "xH2O (anode)", "\Delta \phi equil. (V)", "\Delta \phi cell (V)")

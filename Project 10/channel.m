@@ -208,7 +208,7 @@ while iterator <= steps
     
     enthalpy_0 = enthalpy_anode_in* (molar_flow_rate_H2 + molar_flow_rate_H2O);
     enthalpy_0 = enthalpy_cathode_in * (molar_flow_rate_O2 + molar_flow_rate_N2);
-    enthalpy_0 = enthalpy_0 / 1000;
+    enthalpy_0 = enthalpy_0 / 1;
 
     %Calculate # of electrons used in chemical reaction
     electrons = diff_current / e;
@@ -242,13 +242,15 @@ while iterator <= steps
     %Use the depleted gas arrays to calculate the current density
     %produced by the next differential button cell element
     [i mu xac delta phi] = SOFC_Element_VTKL(voltage,x_step,mu_step,Tcell,K,L,ioa,ioc,i);
+    actual_electric_potential(iterator) = SOFC_Element_icTKL(0,x_step,mu_step,Tcell,K,L,ioa,ioc);
+    disp([voltage i delta])
     %Calculate the current as current density * area
     diff_current = i*darea;
     accumulated_current = accumulated_current + diff_current;
 
     enthalpy_1 = enthalpy_anode_out* (molar_flow_rate_H2 + molar_flow_rate_H2O);
     enthalpy_1 = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
-    enthalpy_1 = enthalpy_1 / 1000;
+    enthalpy_1 = enthalpy_1 / 1;
 
     distance_along_channel(iterator) = dlength*(iterator);
     current_density_array(iterator) = i;
@@ -286,7 +288,7 @@ heat_transfer = (enthalpy_start_anode+enthalpy_start_cathode)/1000 - (enthalpy_o
 %For Graph 2
 %plot all the following:
 
-alongChannelVals.distance_along_normal = distance_along_channel;
+alongChannelVals.distance_along_channel = distance_along_channel;
 alongChannelVals.current_density_array = current_density_array;
 alongChannelVals.heat_flux_array = heat_flux_array ;
 alongChannelVals.electrical_power_density = electrical_power_density ;
