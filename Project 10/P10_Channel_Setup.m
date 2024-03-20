@@ -1,7 +1,7 @@
 % Channel setup of Project 10
 
 % Global Variables
-global e N_A R h F k_B
+global e N_A R h F k_Be B
 e = 1.60218e-19;    % Coul/unit-charge
 N_A = 6.02214e23;   % particles/mole
 R   = 8.31447;      % J/mol-K
@@ -48,7 +48,9 @@ N2  = speciesIndex(gas,'N2');
 Nsp = nSpecies(gas);
 
 % Set the path lengths.
-L_YSZ  = 50e-6;                 % m
+%L_YSZ  = 50e-6;                 % m
+L_YSZ  = 0.5e-3;                 % m
+
 L_GDLa = 5e-3;
 L_GDLc = 5e-3;
 L_Nia  = 0;                     % In case you want the metal too.
@@ -222,7 +224,7 @@ while iterator <= steps
     
     enthalpy_0 = enthalpy_anode_in* (molar_flow_rate_H2 + molar_flow_rate_H2O);
     enthalpy_0 = enthalpy_cathode_in * (molar_flow_rate_O2 + molar_flow_rate_N2);
-    enthalpy_0 = enthalpy_0 / 1000;
+    enthalpy_0 = enthalpy_0;
 
     %Calculate # of electrons used in chemical reaction
     electrons = diff_current / e;
@@ -262,7 +264,7 @@ while iterator <= steps
 
     enthalpy_1 = enthalpy_anode_out* (molar_flow_rate_H2 + molar_flow_rate_H2O);
     enthalpy_1 = enthalpy_cathode_out * (molar_flow_rate_O2 + molar_flow_rate_N2);
-    enthalpy_1 = enthalpy_1 / 1000;
+    enthalpy_1 = enthalpy_1;
 
     distance_along_channel(iterator) = dlength*(iterator);
     current_density_array(iterator) = i;
@@ -304,7 +306,7 @@ distance_along_channel;
 current_density_array;
 heat_flux_array ;
 electrical_power_density ;
-hydrogen_mole_fractions ;
+hydrogen_mole_fractions ;s
 water_mole_fractions;
 oxygen_mole_fractions;
 equ_electric_potential;
@@ -315,8 +317,10 @@ actual_electric_potential;
 figure(1)
 hold on;
 plot(distance_along_channel, current_density_array./1000)
-plot(distance_along_channel, heat_flux_array./1000)
+%plot(distance_along_channel, heat_flux_array./1000)
 plot(distance_along_channel, electrical_power_density./1000)
+plot(distance_along_channel, electrical_power_density.*9/7/1000)
+
 xlabel("Distance Along Channel (m)")
 title("1000 C, 3 bar, 0.61 V")
 legend("Current Density (kA/m2)", "Heat Flux (kW/m2)", "Elec. Power Density (kW/m2)")
